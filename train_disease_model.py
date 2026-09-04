@@ -1,11 +1,11 @@
 import argparse
+import json
+from collections import Counter
 from pathlib import Path
 
+import numpy as np
 import torch
 import torch.nn as nn
-# print(torch.cuda.is_available())
-# print(torch.cuda.device_count())
-# print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else "No GPU")
 
 from torchvision import transforms
 from torchvision import datasets
@@ -14,9 +14,77 @@ from torchvision import models
 from torchvision.models import ResNet18_Weights
 
 from torch.utils.data import DataLoader
-from torch.utils.data import random_split
+from torch.utils.data import Subset
 
 MODEL_DIR = Path("ml_models")
+
+
+def find_train_valid(data_dir):
+    """
+    Recursively locate the actual train/valid folders inside data_dir.
+
+    Handles the well-known quirk of this exact Kaggle dataset: the zip
+    extracts into a DOUBLY-NESTED folder, e.g.
+        dataset/New Plant Diseases Dataset(Augmented)/New Plant Diseases Dataset(Augmented)/train
+        dataset/New Plant Diseases Dataset(Augmented)/New Plant Diseases Dataset(Augmented)/valid
+    rather than dataset/train + dataset/valid directly. This searches at any
+    depth for a folder literally named 'train' with a 'valid' (or 'val')
+    sibling, so you can point --data straight at wherever you extracted the
+    zip without manually moving folders around.
+    """
+    data_dir = Path(data_dir)
+    for train_dir in sorted(data_dir.rglob("train")):
+        if not train_dir.is_dir():
+            continue
+        for val_name in ("valid", "val"):
+            val_dir = train_dir.parent / val_name
+            if val_dir.is_dir():
+                return train_dir, val_dir
+    return None, None
+
+
+def build_splits(data_dir):
+    """
+    Build train/val splits WITHOUT leaking near-duplicate augmented images
+    between the two sets, and WITH class balance preserved (stratified).
+
+    Two modes:
+    1) If a train/valid (or train/val) pair is found anywhere under
+       data_dir (see find_train_valid) — as the Kaggle "New Plant Diseases
+       Dataset (Augmented)" download provides — use THOSE folders directly.
+       Do not re-split them yourself; the dataset's own split already keeps
+       augmented siblings on one side.
+    2) If data_dir is a single flat folder of class subfolders (your own
+       collected Green Gram photos, for example), do a STRATIFIED split so
+       every class is represented proportionally in val, instead of the
+       previous plain random_split (which can leave some classes with too
+       few/zero val samples -> noisy, unstable "best model" selection).
+    """
+    data_dir = Path(data_dir)
+    train_dir, val_dir = find_train_valid(data_dir)
+
+    if train_dir and val_dir:
+        print(f"\nFound dataset's own split:\n  train: {train_dir}\n  valid: {val_dir}")
+        return "prebuilt", train_dir, val_dir
+
+    print(f"\nNo train/valid folders found anywhere under {data_dir} — "
+          f"treating it as a flat folder of class subfolders and doing a "
+          f"stratified split instead.")
+    return "flat", data_dir, data_dir
+
+
+def stratified_indices(full_dataset, val_fraction=0.2, seed=42):
+    """Per-class split so every class contributes ~val_fraction to val."""
+    rng = np.random.RandomState(seed)
+    targets = np.array(full_dataset.targets)
+    train_idx, val_idx = [], []
+    for cls in np.unique(targets):
+        cls_idx = np.where(targets == cls)[0]
+        rng.shuffle(cls_idx)
+        n_val = max(1, int(len(cls_idx) * val_fraction))
+        val_idx.extend(cls_idx[:n_val])
+        train_idx.extend(cls_idx[n_val:])
+    return train_idx, val_idx
 
 
 def train(data_dir, epochs=30, batch_size=32, lr=1e-4):
@@ -58,43 +126,50 @@ def train(data_dir, epochs=30, batch_size=32, lr=1e-4):
         )
     ])
 
-    full_dataset = datasets.ImageFolder(
-        data_dir
-    )
+    mode, train_src, val_src = build_splits(data_dir)
 
-    class_names = full_dataset.classes
+    if mode == "prebuilt":
+        # Dataset's own train/valid folders — no leakage, no re-split needed.
+        train_dataset = datasets.ImageFolder(train_src, transform=train_transform)
+        val_dataset   = datasets.ImageFolder(val_src,   transform=val_transform)
+        class_names   = train_dataset.classes
+        assert class_names == val_dataset.classes, \
+            "train/valid class folders don't match! Check dataset structure."
+        train_targets = train_dataset.targets
+    else:
+        # Flat folder -> stratified split by class, same underlying files
+        # loaded twice with different transforms (train aug vs clean val).
+        base_for_split = datasets.ImageFolder(train_src)
+        class_names = base_for_split.classes
+        train_indices, val_indices = stratified_indices(base_for_split)
+
+        train_dataset = Subset(
+            datasets.ImageFolder(train_src, transform=train_transform),
+            train_indices
+        )
+        val_dataset = Subset(
+            datasets.ImageFolder(val_src, transform=val_transform),
+            val_indices
+        )
+        train_targets = [base_for_split.targets[i] for i in train_indices]
 
     print("\nClasses Found:", len(class_names))
-    print("Total Images:", len(full_dataset))
+    print("Train Images:", len(train_dataset), " Val Images:", len(val_dataset))
 
-    train_size = int(0.8 * len(full_dataset))
-    val_size = len(full_dataset) - train_size
-
-    train_indices, val_indices = random_split(
-        range(len(full_dataset)),
-        [train_size, val_size]
-    )
-
-    train_dataset = torch.utils.data.Subset(
-        datasets.ImageFolder(
-            data_dir,
-            transform=train_transform
-        ),
-        train_indices.indices
-    )
-
-    val_dataset = torch.utils.data.Subset(
-        datasets.ImageFolder(
-            data_dir,
-            transform=val_transform
-        ),
-        val_indices.indices
+    # Per-class counts -> class-balanced sampling so rare classes aren't
+    # drowned out (a common cause of the model defaulting to majority/
+    # "healthy"-like classes).
+    counts = Counter(train_targets)
+    class_weights = {c: 1.0 / n for c, n in counts.items()}
+    sample_weights = [class_weights[t] for t in train_targets]
+    sampler = torch.utils.data.WeightedRandomSampler(
+        sample_weights, num_samples=len(sample_weights), replacement=True
     )
 
     train_loader = DataLoader(
         train_dataset,
         batch_size=batch_size,
-        shuffle=True,
+        sampler=sampler,
         num_workers=4
     )
 
@@ -128,7 +203,12 @@ def train(data_dir, epochs=30, batch_size=32, lr=1e-4):
 
     model = model.to(device)
 
-    criterion = nn.CrossEntropyLoss()
+    # Label smoothing: your Phase-2 model hit 99.7% "val" accuracy with
+    # overconfident softmax outputs, which is a symptom of overfitting to
+    # near-duplicate augmented images. Smoothing discourages the model from
+    # driving probabilities to 0/1 and tends to generalize better to
+    # real-world (non-studio) photos.
+    criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
 
     optimizer_fc = torch.optim.Adam(
         model.fc.parameters(),
@@ -137,7 +217,8 @@ def train(data_dir, epochs=30, batch_size=32, lr=1e-4):
 
     optimizer_all = torch.optim.Adam(
         model.parameters(),
-        lr=lr * 0.1
+        lr=lr * 0.1,
+        weight_decay=1e-4
     )
 
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
@@ -193,8 +274,8 @@ def train(data_dir, epochs=30, batch_size=32, lr=1e-4):
 
         model.eval()
 
-        correct = 0
         total = 0
+        all_preds, all_labels = [], []
 
         with torch.no_grad():
 
@@ -211,14 +292,23 @@ def train(data_dir, epochs=30, batch_size=32, lr=1e-4):
                 )
 
                 total += labels.size(0)
+                all_preds.extend(preds.cpu().tolist())
+                all_labels.extend(labels.cpu().tolist())
 
-                correct += (
-                    preds == labels
-                ).sum().item()
+        all_preds = np.array(all_preds)
+        all_labels = np.array(all_labels)
+        accuracy = 100 * (all_preds == all_labels).sum() / total
 
-        accuracy = (
-            100 * correct / total
-        )
+        # Macro-averaged per-class recall ("balanced accuracy"). Using this
+        # instead of raw accuracy to pick the "best" checkpoint stops the
+        # model from being rewarded for nailing common/easy classes while
+        # quietly failing rare ones (e.g. always guessing "healthy").
+        per_class_recall = []
+        for cls in range(num_classes):
+            mask = all_labels == cls
+            if mask.sum() > 0:
+                per_class_recall.append((all_preds[mask] == cls).mean())
+        balanced_acc = 100 * float(np.mean(per_class_recall))
 
         avg_loss = (
             running_loss /
@@ -228,15 +318,16 @@ def train(data_dir, epochs=30, batch_size=32, lr=1e-4):
         print(
             f"Epoch [{epoch+1}/{epochs}] "
             f"Loss: {avg_loss:.4f} "
-            f"Val Acc: {accuracy:.2f}%"
+            f"Val Acc: {accuracy:.2f}% "
+            f"Balanced Acc: {balanced_acc:.2f}%"
         )
 
         if epoch >= 3:
-            scheduler.step(accuracy)
+            scheduler.step(balanced_acc)
 
-        if accuracy > best_acc:
+        if balanced_acc > best_acc:
 
-            best_acc = accuracy
+            best_acc = balanced_acc
 
             early_stop_counter = 0
 
@@ -262,8 +353,16 @@ def train(data_dir, epochs=30, batch_size=32, lr=1e-4):
             break
 
     print(
-        f"\nBest Accuracy: "
+        f"\nBest Balanced Accuracy (macro avg per-class recall): "
         f"{best_acc:.2f}%"
+    )
+    print(
+        "Note: this is macro-balanced accuracy, a more honest number than "
+        "raw accuracy on an imbalanced validation set. Compare it against "
+        "accuracy on a small hand-labelled set of REAL camera photos before "
+        "trusting it for deployment — validation accuracy on the same "
+        "dataset's own split will always look better than real-world "
+        "performance."
     )
 
     model.load_state_dict(
@@ -312,7 +411,10 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--data",
-        default="dataset/color"
+        default="dataset",
+        help="Path to your dataset folder (e.g. the 'dataset' folder next to "
+             "agriculture/, ml_models/, etc. — can point straight at the "
+             "extracted Kaggle zip, nested folders are auto-detected)"
     )
 
     parser.add_argument(

@@ -60,7 +60,7 @@ python simulate_sensors.py
 ---
 
 ## Adding Your Trained Disease Model
-1. Train your CNN on PlantVillage dataset
+1. Train your CNN on PlantVillage dataset    python train_disease_model.py --data dataset --epochs 30
 2. Save as `ml_models/disease_model.pth`
 3. Update `DISEASE_CLASSES` list in `agriculture/ml_utils.py` to match your training labels
 4. Restart Django — it auto-loads the model

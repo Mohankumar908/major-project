@@ -12,7 +12,7 @@ from .models import (
     SensorData, GrowthPrediction, PlantImage,
     CropSession, DailyGrowthRecord, CropNote,
 )
-from .ml_utils import predict_growth, predict_disease, extract_greenness
+from .ml_utils import predict_growth, predict_disease, extract_greenness, extract_leaf_area
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -398,6 +398,7 @@ def api_growth_chart(request, session_id):
     records = session.growth_records.order_by('day_number', 'slot')
 
     seen, days, actual, predicted, yields, health_trend, greenness_trend = {}, [], [], [], [], [], []
+    leaf_coverage_trend, leaf_area_trend = [], []
     for r in records:
         if r.day_number not in seen:
             seen[r.day_number] = True
@@ -407,6 +408,8 @@ def api_growth_chart(request, session_id):
             yields.append(r.predicted_yield_per_acre)
             health_trend.append(r.health_score)
             greenness_trend.append(r.actual_greenness_score)
+            leaf_coverage_trend.append(r.actual_leaf_coverage_percent)
+            leaf_area_trend.append(r.actual_leaf_area_cm2)
 
     total_days = 60
     if session.expected_harvest:
@@ -421,6 +424,8 @@ def api_growth_chart(request, session_id):
         'predicted_yields': yields,
         'health_trend':     health_trend,
         'greenness_trend':  greenness_trend,
+        'leaf_coverage_trend': leaf_coverage_trend,
+        'leaf_area_trend':  leaf_area_trend,
         'ideal_days':       ideal_days,
         'ideal_heights':    ideal_heights,
         'ideal_yields':     ideal_yields,
@@ -449,15 +454,21 @@ def api_upload_growth_image(request, session_id):
             location    = session.location,
             notes       = request.POST.get('notes', ''),
         )
-        diseased, disease_name, confidence, model_acc, treatment = predict_disease(plant_img.image.path)
+        diseased, disease_name, confidence, model_acc, treatment, low_confidence = predict_disease(plant_img.image.path)
         greenness = extract_greenness(plant_img.image.path)
+        leaf_coverage_percent, leaf_area_cm2 = extract_leaf_area(
+            plant_img.image.path, frame_area_cm2=session.camera_frame_area_cm2
+        )
 
         plant_img.disease_detected = diseased
         plant_img.disease_name     = disease_name
         plant_img.confidence       = confidence
         plant_img.model_accuracy   = model_acc
+        plant_img.low_confidence   = low_confidence
         plant_img.processed        = True
         plant_img.greenness_score  = greenness
+        plant_img.leaf_coverage_percent = leaf_coverage_percent
+        plant_img.leaf_area_cm2         = leaf_area_cm2
         plant_img.save()
 
         # Upsert today's growth record
@@ -469,6 +480,8 @@ def api_upload_growth_image(request, session_id):
         record.image                 = plant_img
         record.image_uploaded        = True
         record.actual_greenness_score = greenness
+        record.actual_leaf_coverage_percent = leaf_coverage_percent
+        record.actual_leaf_area_cm2         = leaf_area_cm2
         if record.day_number:
             record.actual_height_cm = round(
                 10 + 70 * (1 / (1 + 2.718 ** (-0.05 * (record.day_number - 60))))
@@ -498,7 +511,10 @@ def api_upload_growth_image(request, session_id):
             'disease_name':     disease_name,
             'confidence':       confidence,
             'model_accuracy':   model_acc,
+            'low_confidence':   low_confidence,
             'greenness_score':  greenness,
+            'leaf_coverage_percent': leaf_coverage_percent,
+            'leaf_area_cm2':    leaf_area_cm2,
             'actual_height_cm': record.actual_height_cm,
             'day_number':       record.day_number,
             'slot':             slot,
@@ -569,15 +585,19 @@ def api_disease_analyse(request):
             notes       = request.POST.get('notes', ''),
         )
 
-        diseased, disease_name, confidence, model_acc, treatment = predict_disease(plant_img.image.path)
+        diseased, disease_name, confidence, model_acc, treatment, low_confidence = predict_disease(plant_img.image.path)
         greenness = extract_greenness(plant_img.image.path)
+        leaf_coverage_percent, leaf_area_cm2 = extract_leaf_area(plant_img.image.path)
 
         plant_img.disease_detected = diseased
         plant_img.disease_name     = disease_name
         plant_img.confidence       = confidence
         plant_img.model_accuracy   = model_acc
+        plant_img.low_confidence   = low_confidence
         plant_img.processed        = True
         plant_img.greenness_score  = greenness
+        plant_img.leaf_coverage_percent = leaf_coverage_percent
+        plant_img.leaf_area_cm2         = leaf_area_cm2
         plant_img.save()
 
         return JsonResponse({
@@ -588,7 +608,10 @@ def api_disease_analyse(request):
             'disease_name':     disease_name,
             'confidence':       confidence,
             'model_accuracy':   model_acc,
+            'low_confidence':   low_confidence,
             'greenness_score':  greenness,
+            'leaf_coverage_percent': leaf_coverage_percent,
+            'leaf_area_cm2':    leaf_area_cm2,
             'treatment':        treatment,
         })
     except Exception as e:
@@ -614,7 +637,10 @@ def api_disease_history(request):
             'disease_name':     img.disease_name,
             'confidence':       img.confidence,
             'model_accuracy':   img.model_accuracy,
+            'low_confidence':   img.low_confidence,
             'greenness_score':  img.greenness_score,
+            'leaf_coverage_percent': img.leaf_coverage_percent,
+            'leaf_area_cm2':    img.leaf_area_cm2,
             'farmer_name':      img.farmer_name,
             'location':         img.location,
             'uploaded_at':      img.uploaded_at.strftime('%d %b %Y, %H:%M'),
