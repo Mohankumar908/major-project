@@ -13,6 +13,7 @@ from .models import (
     CropSession, DailyGrowthRecord, CropNote,
 )
 from .ml_utils import predict_growth, predict_disease, extract_greenness, extract_leaf_area
+from .auto_retrain import maybe_trigger_retrain
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -311,6 +312,10 @@ def api_sensor_data(request, session_id):
             record.sensor_data              = sensor
             record.save()
 
+        # Check if enough new real data has piled up to auto-retrain the
+        # growth model in the background (see auto_retrain.py).
+        maybe_trigger_retrain()
+
         return JsonResponse({
             'status':                 'ok',
             'sensor_id':              sensor.id,
@@ -492,6 +497,10 @@ def api_upload_growth_image(request, session_id):
             record.recommendation = (record.recommendation + ' | ' if record.recommendation else '') + \
                 f'Disease detected: {disease_name}'
         record.save()
+
+        # Check if enough new real data has piled up to auto-retrain the
+        # growth model in the background (see auto_retrain.py).
+        maybe_trigger_retrain()
 
         # Auto-create an alert note if disease detected
         if diseased:

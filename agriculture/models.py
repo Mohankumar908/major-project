@@ -38,6 +38,11 @@ class CropSession(models.Model):
     # object in-frame; leave null to only track leaf_coverage_percent
     # (fraction of the frame that is leaf) without an absolute cm^2 figure.
     camera_frame_area_cm2 = models.FloatField(null=True, blank=True)
+    # Set ONCE at harvest with the real measured yield for this session.
+    # This is the ground-truth label the yield model retrains against —
+    # without it, the yield model has no real-world signal to correct on,
+    # only synthetic training data.
+    actual_yield_per_acre_kg = models.FloatField(null=True, blank=True)
 
     class Meta:
         ordering = ['-created_at']
