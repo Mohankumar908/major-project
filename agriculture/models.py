@@ -33,6 +33,11 @@ class CropSession(models.Model):
     status           = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
     notes            = models.TextField(blank=True)
     created_at       = models.DateTimeField(auto_now_add=True)
+    # Calibration: real-world area (cm^2) visible in the camera's fixed frame
+    # at its mounted capture distance. Set this once by measuring a known
+    # object in-frame; leave null to only track leaf_coverage_percent
+    # (fraction of the frame that is leaf) without an absolute cm^2 figure.
+    camera_frame_area_cm2 = models.FloatField(null=True, blank=True)
 
     class Meta:
         ordering = ['-created_at']
@@ -107,8 +112,11 @@ class PlantImage(models.Model):
     disease_name     = models.CharField(max_length=150, blank=True)
     confidence       = models.FloatField(null=True, blank=True)
     model_accuracy   = models.FloatField(null=True, blank=True)
+    low_confidence   = models.BooleanField(default=False)
     processed        = models.BooleanField(default=False)
     greenness_score  = models.FloatField(null=True, blank=True)
+    leaf_coverage_percent = models.FloatField(null=True, blank=True)
+    leaf_area_cm2         = models.FloatField(null=True, blank=True)
 
     class Meta:
         ordering = ['-uploaded_at']
@@ -133,6 +141,8 @@ class DailyGrowthRecord(models.Model):
     # Observed
     actual_height_cm         = models.FloatField(null=True, blank=True)
     actual_greenness_score   = models.FloatField(null=True, blank=True)
+    actual_leaf_coverage_percent = models.FloatField(null=True, blank=True)
+    actual_leaf_area_cm2         = models.FloatField(null=True, blank=True)
     image                    = models.ForeignKey(PlantImage, null=True, blank=True, on_delete=models.SET_NULL)
     image_uploaded           = models.BooleanField(default=False)
 
