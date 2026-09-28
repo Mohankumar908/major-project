@@ -95,6 +95,20 @@
 .empty-title { font-size: .95rem; font-weight: 600; color: var(--text-2); margin-bottom: 6px; }
 .empty-sub   { font-size: .8rem; margin-bottom: 20px; }
 
+/* ── Delete button on cards ── */
+.btn-delete-session {
+  background: none; border: none; cursor: pointer; padding: 4px 6px;
+  border-radius: 6px; color: var(--text-3); font-size: .85rem; line-height: 1;
+  transition: background .15s, color .15s;
+  flex-shrink: 0;
+}
+.btn-delete-session:hover { background: var(--red-light); color: #dc2626; }
+
+/* ── Confirm delete modal ── */
+.delete-modal-body { text-align: center; padding: 8px 0 4px; }
+.delete-modal-icon { font-size: 2.5rem; margin-bottom: 12px; }
+.delete-modal-msg  { font-size: .9rem; color: var(--text-2); line-height: 1.5; }
+
 /* ── Modal crop icon preview ── */
 .modal-crop-preview {
   width: 56px; height: 56px; border-radius: 14px; background: var(--green-light);
@@ -213,7 +227,11 @@
         <span class="session-footer-left">
           📅 Sown {{ s.sowing_date }}{% if s.expected_harvest %} &nbsp;·&nbsp; 🌾 Harvest {{ s.expected_harvest }}{% endif %}
         </span>
-        <span class="badge badge-green">Active</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="badge badge-green">Active</span>
+          <button class="btn-delete-session" title="Delete session"
+            onclick="event.preventDefault();event.stopPropagation();confirmDelete({{ s.id }},'{{ s.crop_name|escapejs }}{% if s.field_name %} — {{ s.field_name|escapejs }}{% endif %}')">🗑️</button>
+        </div>
       </div>
     </a>
     {% empty %}
@@ -250,6 +268,11 @@
         <span class="session-footer-left">
           {{ s.growth_records.count }} records &nbsp;·&nbsp; {{ s.days_since_sowing }} days
         </span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="badge badge-slate">Done</span>
+          <button class="btn-delete-session" title="Delete session"
+            onclick="event.preventDefault();event.stopPropagation();confirmDelete({{ s.id }},'{{ s.crop_name|escapejs }}{% if s.field_name %} — {{ s.field_name|escapejs }}{% endif %}')">🗑️</button>
+        </div>
       </div>
     </a>
     {% endfor %}
@@ -277,6 +300,11 @@
       </div>
       <div class="session-card-footer">
         <span class="session-footer-left">{{ s.growth_records.count }} records</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="badge badge-amber">Paused</span>
+          <button class="btn-delete-session" title="Delete session"
+            onclick="event.preventDefault();event.stopPropagation();confirmDelete({{ s.id }},'{{ s.crop_name|escapejs }}{% if s.field_name %} — {{ s.field_name|escapejs }}{% endif %}')">🗑️</button>
+        </div>
       </div>
     </a>
     {% endfor %}
@@ -284,6 +312,30 @@
   {% endif %}
 
 </div><!-- /page -->
+
+<!-- ── Confirm Delete Modal ── -->
+<div class="modal-overlay" id="delete-confirm-modal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <h3>Delete Session</h3>
+      <button class="modal-close" onclick="closeModal('delete-confirm-modal')">×</button>
+    </div>
+    <div class="modal-body delete-modal-body">
+      <div class="delete-modal-icon">🗑️</div>
+      <div class="delete-modal-msg">
+        Are you sure you want to permanently delete<br>
+        <strong id="delete-session-name"></strong>?<br><br>
+        <span style="color:#dc2626;font-size:.82rem">This will remove all growth records, sensor data, notes and images linked to this session. This action cannot be undone.</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('delete-confirm-modal')">Cancel</button>
+      <button class="btn" id="confirm-delete-btn"
+        style="background:#dc2626;color:#fff;border-color:#dc2626"
+        onclick="executeDelete()">🗑️ Delete Permanently</button>
+    </div>
+  </div>
+</div>
 
 <!-- ── New Session Modal ── -->
 <div class="modal-overlay" id="new-session-modal">
@@ -380,6 +432,40 @@ document.addEventListener('DOMContentLoaded', () => {
     .then(d => { document.getElementById('total-scans').textContent = d.total || 0; })
     .catch(() => { document.getElementById('total-scans').textContent = '—'; });
 });
+
+let _deleteTargetId = null;
+
+function confirmDelete(sessionId, sessionName) {
+  _deleteTargetId = sessionId;
+  document.getElementById('delete-session-name').textContent = sessionName;
+  openModal('delete-confirm-modal');
+}
+
+function executeDelete() {
+  if (!_deleteTargetId) return;
+  const btn = document.getElementById('confirm-delete-btn');
+  btn.innerHTML = '<span class="spinner"></span> Deleting…';
+  btn.disabled = true;
+
+  fetch('/api/sessions/' + _deleteTargetId + '/delete', { method: 'POST' })
+    .then(r => r.json())
+    .then(d => {
+      if (d.error) {
+        toast(d.error, 'err');
+        btn.innerHTML = '🗑️ Delete Permanently';
+        btn.disabled = false;
+        return;
+      }
+      closeModal('delete-confirm-modal');
+      toast('Session deleted.', 'ok');
+      setTimeout(() => window.location.reload(), 600);
+    })
+    .catch(() => {
+      toast('Delete failed. Try again.', 'err');
+      btn.innerHTML = '🗑️ Delete Permanently';
+      btn.disabled = false;
+    });
+}
 
 function createSession() {
   const crop    = document.getElementById('m-crop').value;
