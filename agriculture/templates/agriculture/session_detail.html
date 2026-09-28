@@ -1,10 +1,10 @@
-{% extends "agriculture/base.html" %}
-{% block title %}{{ session.crop_name }} — {{ session.field_name|default:"Monitoring" }}{% endblock %}
+﻿{% extends "agriculture/base.html" %}
+{% block title %}{{ session.crop_name }} â€” {{ session.field_name|default:"Monitoring" }}{% endblock %}
 {% block nav_home %}active{% endblock %}
 
 {% block extra_head %}
 <style>
-/* ── Shell ── */
+/* â”€â”€ Shell â”€â”€ */
 .detail-shell{display:flex;min-height:calc(100vh - 58px)}
 .detail-sidebar{
   width:210px;flex-shrink:0;background:var(--surface);
@@ -13,7 +13,7 @@
 }
 .detail-main{flex:1;padding:24px 28px;overflow-x:hidden;min-width:0}
 
-/* ── Sidebar nav ── */
+/* â”€â”€ Sidebar nav â”€â”€ */
 .snav-section{font-size:.66rem;font-weight:600;color:var(--text-3);
   letter-spacing:.08em;text-transform:uppercase;padding:6px 16px 4px;margin-top:8px}
 .snav-item{
@@ -25,7 +25,7 @@
 .snav-item.active{background:var(--green-pale);color:var(--green);border-left-color:var(--green);font-weight:600}
 .snav-icon{font-size:.95rem;width:18px;text-align:center}
 
-/* ── Page header ── */
+/* â”€â”€ Page header â”€â”€ */
 .page-header{
   display:flex;align-items:flex-start;justify-content:space-between;
   margin-bottom:22px;gap:16px;flex-wrap:wrap;
@@ -39,11 +39,11 @@
 .page-header-meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:5px;align-items:center}
 .page-header-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
 
-/* ── Tab panels ── */
+/* â”€â”€ Tab panels â”€â”€ */
 .tab-panel{display:none}
 .tab-panel.active{display:block}
 
-/* ── Metric grid ── */
+/* â”€â”€ Metric grid â”€â”€ */
 .metric-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:12px;margin-bottom:20px}
 .metric-card{
   background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
@@ -63,12 +63,12 @@
 .mi-red   {background:var(--red-light);   color:var(--red)}
 .mi-purple{background:var(--purple-light);color:var(--purple)}
 
-/* ── Two/three col grids ── */
+/* â”€â”€ Two/three col grids â”€â”€ */
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px}
 .three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px}
 .col-span-2{grid-column:span 2}
 
-/* ── Health ring ── */
+/* â”€â”€ Health ring â”€â”€ */
 .health-wrap{display:flex;align-items:center;gap:18px}
 .ring-wrap{position:relative;width:88px;height:88px;flex-shrink:0}
 .ring-wrap svg{transform:rotate(-90deg)}
@@ -82,12 +82,12 @@
 .hstat .hk{color:var(--text-2)}
 .hstat .hv{font-weight:600;color:var(--text)}
 
-/* ── Chart wrappers ── */
+/* â”€â”€ Chart wrappers â”€â”€ */
 .chart-wrap{position:relative;height:220px}
 .chart-wrap-sm{position:relative;height:170px}
 .chart-wrap-lg{position:relative;height:270px}
 
-/* ── Upload panel ── */
+/* â”€â”€ Upload panel â”€â”€ */
 .slot-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
 .slot-card{
   border-radius:var(--r);border:1px solid var(--border);padding:16px 18px;
@@ -107,7 +107,7 @@
   margin-top:12px;display:none;
 }
 
-/* ── Rec items ── */
+/* â”€â”€ Rec items â”€â”€ */
 .rec-list{display:flex;flex-direction:column;gap:8px}
 .rec-item{
   display:flex;gap:11px;align-items:flex-start;padding:10px 13px;
@@ -122,7 +122,7 @@
 .rec-qty{font-size:.7rem;background:var(--blue-light);color:var(--blue);border-radius:10px;padding:1px 7px;font-weight:500}
 .rec-timing{font-size:.7rem;color:var(--text-3)}
 
-/* ── Notes ── */
+/* â”€â”€ Notes â”€â”€ */
 .note-list{display:flex;flex-direction:column;gap:10px}
 .note-item{
   background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);
@@ -138,7 +138,7 @@
 .note-body{font-size:.77rem;color:var(--text-2);margin-top:3px}
 .note-date{font-size:.68rem;color:var(--text-3)}
 
-/* ── Growth log table ── */
+/* â”€â”€ Growth log table â”€â”€ */
 .tbl-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:.78rem}
 thead th{
@@ -152,7 +152,7 @@ tbody tr:hover{background:var(--surface-alt)}
 tbody td{padding:8px 12px;color:var(--text)}
 .td-muted{color:var(--text-3)}
 
-/* ── Image grid ── */
+/* â”€â”€ Image grid â”€â”€ */
 .img-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
 .img-thumb{border-radius:var(--r-sm);overflow:hidden;border:1px solid var(--border);background:var(--surface-alt)}
 .img-thumb img{width:100%;aspect-ratio:1;object-fit:cover}
@@ -160,7 +160,7 @@ tbody td{padding:8px 12px;color:var(--text)}
 .img-thumb-name{font-size:.68rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .img-thumb-conf{font-size:.64rem;color:var(--text-3)}
 
-/* ── Alerts banner ── */
+/* â”€â”€ Alerts banner â”€â”€ */
 .alert-banner{
   display:flex;align-items:center;gap:10px;padding:10px 16px;
   border-radius:var(--r-sm);margin-bottom:14px;font-size:.82rem;font-weight:500;
@@ -169,7 +169,7 @@ tbody td{padding:8px 12px;color:var(--text)}
 .alert-banner.err {background:var(--red-light);  border:1px solid #fca5a5;color:#991b1b}
 .alert-banner.ok  {background:var(--green-pale);  border:1px solid #a7d7b5;color:#166534}
 
-/* ── Sensor history section ── */
+/* â”€â”€ Sensor history section â”€â”€ */
 .sensor-table-section{margin-top:20px}
 
 @media(max-width:900px){
@@ -181,35 +181,35 @@ tbody td{padding:8px 12px;color:var(--text)}
 {% endblock %}
 
 {% block topnav_right %}
-<a href="/" class="btn btn-outline btn-sm">← All Crops</a>
+<a href="/" class="btn btn-outline btn-sm">â† All Crops</a>
 {% if session.status == 'active' %}
 <button class="btn btn-outline btn-sm" onclick="closeSession()">Mark Complete</button>
 {% endif %}
-<a href="/disease/" class="btn btn-secondary btn-sm">🔬 Disease Scan</a>
+<a href="/disease/" class="btn btn-secondary btn-sm">ðŸ”¬ Disease Scan</a>
 {% endblock %}
 
 {% block content %}
 {% with sid=session.id %}
 <div class="detail-shell">
 
-  <!-- ── Sidebar ── -->
+  <!-- â”€â”€ Sidebar â”€â”€ -->
   <nav class="detail-sidebar">
     <div class="snav-section">Monitoring</div>
-    <div class="snav-item active" onclick="switchTab('overview',this)"><span class="snav-icon">📊</span>Overview</div>
-    <div class="snav-item" onclick="switchTab('growth',this)"><span class="snav-icon">📈</span>Growth Charts</div>
+    <div class="snav-item active" onclick="switchTab('overview',this)"><span class="snav-icon">ðŸ“Š</span>Overview</div>
+    <div class="snav-item" onclick="switchTab('growth',this)"><span class="snav-icon">ðŸ“ˆ</span>Growth Charts</div>
     <div class="snav-item" onclick="switchTab('upload',this)">
-      <span class="snav-icon">📷</span>Daily Upload
+      <span class="snav-icon">ðŸ“·</span>Daily Upload
       {% if not morning_done or not evening_done %}<span class="badge badge-amber" style="margin-left:auto;font-size:.6rem">!</span>{% endif %}
     </div>
-    <div class="snav-item" onclick="switchTab('log',this)"><span class="snav-icon">📋</span>Growth Log</div>
+    <div class="snav-item" onclick="switchTab('log',this)"><span class="snav-icon">ðŸ“‹</span>Growth Log</div>
     <div class="snav-section">Tools</div>
-    <div class="snav-item" onclick="switchTab('notes',this)"><span class="snav-icon">📝</span>Field Notes</div>
-    <div class="snav-item" onclick="switchTab('sensor',this)"><span class="snav-icon">📡</span>Sensor History</div>
+    <div class="snav-item" onclick="switchTab('notes',this)"><span class="snav-icon">ðŸ“</span>Field Notes</div>
+    <div class="snav-item" onclick="switchTab('sensor',this)"><span class="snav-icon">ðŸ“¡</span>Sensor History</div>
     <div class="snav-section">Session</div>
-    <div class="snav-item" onclick="switchTab('info',this)"><span class="snav-icon">ℹ️</span>Session Info</div>
+    <div class="snav-item" onclick="switchTab('info',this)"><span class="snav-icon">â„¹ï¸</span>Session Info</div>
   </nav>
 
-  <!-- ── Main ── -->
+  <!-- â”€â”€ Main â”€â”€ -->
   <main class="detail-main">
 
     <!-- Page header -->
@@ -239,45 +239,72 @@ tbody td{padding:8px 12px;color:var(--text)}
       </div>
     </div>
 
-    <!-- ══════════ TAB: OVERVIEW ══════════ -->
+    <!-- â•â•â•â•â•â•â•â•â•â• TAB: OVERVIEW â•â•â•â•â•â•â•â•â•â• -->
     <div id="tab-overview" class="tab-panel active">
 
       <!-- Sensor metrics -->
       <div class="metric-grid">
         <div class="metric-card">
-          <div class="metric-top"><span class="metric-label">pH</span><span class="metric-icon mi-green">⚗️</span></div>
-          <div><span class="metric-value" id="m-ph">{% if latest_sensor %}{{ latest_sensor.ph|floatformat:1 }}{% else %}—{% endif %}</span></div>
-          <div class="metric-sub">Optimal 6.0–7.0</div>
+          <div class="metric-top"><span class="metric-label">pH</span><span class="metric-icon mi-green">âš—ï¸</span></div>
+          <div><span class="metric-value" id="m-ph">{% if latest_sensor %}{{ latest_sensor.ph|floatformat:1 }}{% else %}â€”{% endif %}</span></div>
+          <div class="metric-sub">Optimal 6.0â€“7.0</div>
         </div>
         <div class="metric-card">
-          <div class="metric-top"><span class="metric-label">Temperature</span><span class="metric-icon mi-amber">🌡️</span></div>
-          <div><span class="metric-value" id="m-temp">{% if latest_sensor %}{{ latest_sensor.temperature|floatformat:1 }}{% else %}—{% endif %}</span><span class="metric-unit">°C</span></div>
-          <div class="metric-sub">Optimal 20–32 °C</div>
+          <div class="metric-top"><span class="metric-label">Temperature</span><span class="metric-icon mi-amber">ðŸŒ¡ï¸</span></div>
+          <div><span class="metric-value" id="m-temp">{% if latest_sensor %}{{ latest_sensor.temperature|floatformat:1 }}{% else %}â€”{% endif %}</span><span class="metric-unit">Â°C</span></div>
+          <div class="metric-sub">Optimal 20â€“32 Â°C</div>
         </div>
         <div class="metric-card">
-          <div class="metric-top"><span class="metric-label">Humidity</span><span class="metric-icon mi-blue">💧</span></div>
-          <div><span class="metric-value" id="m-hum">{% if latest_sensor %}{{ latest_sensor.humidity|floatformat:0 }}{% else %}—{% endif %}</span><span class="metric-unit">%</span></div>
-          <div class="metric-sub">Optimal 50–80%</div>
+          <div class="metric-top"><span class="metric-label">Humidity</span><span class="metric-icon mi-blue">ðŸ’§</span></div>
+          <div><span class="metric-value" id="m-hum">{% if latest_sensor %}{{ latest_sensor.humidity|floatformat:0 }}{% else %}â€”{% endif %}</span><span class="metric-unit">%</span></div>
+          <div class="metric-sub">Optimal 50â€“80%</div>
         </div>
         <div class="metric-card">
-          <div class="metric-top"><span class="metric-label">Soil Moisture</span><span class="metric-icon mi-teal">🌊</span></div>
-          <div><span class="metric-value" id="m-moist">{% if latest_sensor %}{{ latest_sensor.soil_moisture|floatformat:0 }}{% else %}—{% endif %}</span><span class="metric-unit">%</span></div>
-          <div class="metric-sub">Optimal 35–65%</div>
+          <div class="metric-top"><span class="metric-label">Soil Moisture</span><span class="metric-icon mi-teal">ðŸŒŠ</span></div>
+          <div><span class="metric-value" id="m-moist">{% if latest_sensor %}{{ latest_sensor.soil_moisture|floatformat:0 }}{% else %}â€”{% endif %}</span><span class="metric-unit">%</span></div>
+          <div class="metric-sub">Optimal 35â€“65%</div>
         </div>
         <div class="metric-card">
-          <div class="metric-top"><span class="metric-label">Nitrogen</span><span class="metric-icon mi-green">🌿</span></div>
-          <div><span class="metric-value" id="m-n">{% if latest_sensor %}{{ latest_sensor.npk_nitrogen|floatformat:0 }}{% else %}—{% endif %}</span><span class="metric-unit">mg/kg</span></div>
-          <div class="metric-sub">Optimal 50–100</div>
+          <div class="metric-top"><span class="metric-label">Nitrogen</span><span class="metric-icon mi-green">ðŸŒ¿</span></div>
+          <div><span class="metric-value" id="m-n">{% if latest_sensor %}{{ latest_sensor.npk_nitrogen|floatformat:0 }}{% else %}â€”{% endif %}</span><span class="metric-unit">mg/kg</span></div>
+          <div class="metric-sub">Optimal 50â€“100</div>
         </div>
         <div class="metric-card">
-          <div class="metric-top"><span class="metric-label">Phosphorus</span><span class="metric-icon mi-purple">🟤</span></div>
-          <div><span class="metric-value" id="m-p">{% if latest_sensor %}{{ latest_sensor.npk_phosphorus|floatformat:0 }}{% else %}—{% endif %}</span><span class="metric-unit">mg/kg</span></div>
-          <div class="metric-sub">Optimal 25–60</div>
+          <div class="metric-top"><span class="metric-label">Phosphorus</span><span class="metric-icon mi-purple">ðŸŸ¤</span></div>
+          <div><span class="metric-value" id="m-p">{% if latest_sensor %}{{ latest_sensor.npk_phosphorus|floatformat:0 }}{% else %}â€”{% endif %}</span><span class="metric-unit">mg/kg</span></div>
+          <div class="metric-sub">Optimal 25â€“60</div>
         </div>
         <div class="metric-card">
-          <div class="metric-top"><span class="metric-label">Potassium</span><span class="metric-icon mi-red">🔴</span></div>
-          <div><span class="metric-value" id="m-k">{% if latest_sensor %}{{ latest_sensor.npk_potassium|floatformat:0 }}{% else %}—{% endif %}</span><span class="metric-unit">mg/kg</span></div>
-          <div class="metric-sub">Optimal 30–80</div>
+          <div class="metric-top"><span class="metric-label">Potassium</span><span class="metric-icon mi-red">ðŸ”´</span></div>
+          <div><span class="metric-value" id="m-k">{% if latest_sensor %}{{ latest_sensor.npk_potassium|floatformat:0 }}{% else %}â€”{% endif %}</span><span class="metric-unit">mg/kg</span></div>
+          <div class="metric-sub">Optimal 30â€“80</div>
+        </div>
+      </div>
+
+      <!-- Image-derived metrics row (hidden until first image upload) -->
+      <div id="img-metrics-row" style="display:none;margin-bottom:16px">
+        <div style="font-size:.72rem;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">ðŸ“· Latest Image Metrics</div>
+        <div class="metric-grid">
+          <div class="metric-card">
+            <div class="metric-top"><span class="metric-label">Greenness</span><span class="metric-icon mi-green">ðŸƒ</span></div>
+            <div><span class="metric-value" id="m-greenness">â€”</span><span class="metric-unit">%</span></div>
+            <div class="metric-sub">Excess Green Index</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-top"><span class="metric-label">Leaf Coverage</span><span class="metric-icon mi-teal">ðŸŒ¿</span></div>
+            <div><span class="metric-value" id="m-leafcov">â€”</span><span class="metric-unit">%</span></div>
+            <div class="metric-sub">HSV canopy fraction</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-top"><span class="metric-label">Leaf Area</span><span class="metric-icon mi-blue">ðŸ“</span></div>
+            <div><span class="metric-value" id="m-leafarea">â€”</span><span class="metric-unit">cmÂ²</span></div>
+            <div class="metric-sub">Requires calibration</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-top"><span class="metric-label">Actual Height</span><span class="metric-icon mi-purple">ðŸ“</span></div>
+            <div><span class="metric-value" id="m-actual-ht">â€”</span><span class="metric-unit">cm</span></div>
+            <div class="metric-sub">Image-model estimate</div>
+          </div>
         </div>
       </div>
 
@@ -285,7 +312,7 @@ tbody td{padding:8px 12px;color:var(--text)}
         <!-- Health ring -->
         <div class="card">
           <div class="card-header">
-            <span class="card-title">🌾 Crop Health</span>
+            <span class="card-title">ðŸŒ¾ Crop Health</span>
             <span class="badge badge-green" id="stage-badge">{% if latest_rec %}{{ latest_rec.growth_stage }}{% else %}No data{% endif %}</span>
           </div>
           <div class="card-body">
@@ -297,14 +324,14 @@ tbody td{padding:8px 12px;color:var(--text)}
                     stroke="var(--green-mid)" stroke-dasharray="219.9" stroke-dashoffset="219.9"/>
                 </svg>
                 <div class="ring-label">
-                  <span class="ring-num" id="health-num">{% if latest_rec %}{{ latest_rec.health_score|floatformat:0 }}{% else %}—{% endif %}</span>
+                  <span class="ring-num" id="health-num">{% if latest_rec %}{{ latest_rec.health_score|floatformat:0 }}{% else %}â€”{% endif %}</span>
                   <span class="ring-text">/ 100</span>
                 </div>
               </div>
               <div class="health-stats">
-                <div class="hstat"><span class="hk">Yield / acre</span><span class="hv" id="stat-yield">{% if latest_rec %}{{ latest_rec.predicted_yield_per_acre|floatformat:0 }} kg{% else %}—{% endif %}</span></div>
-                <div class="hstat"><span class="hk">Pred. Height</span><span class="hv" id="stat-height">{% if latest_rec %}{{ latest_rec.predicted_height_cm|floatformat:1 }} cm{% else %}—{% endif %}</span></div>
-                <div class="hstat"><span class="hk">Model Acc.</span><span class="hv" id="stat-acc">{% if latest_rec %}{{ latest_rec.model_accuracy|floatformat:1 }}%{% else %}—{% endif %}</span></div>
+                <div class="hstat"><span class="hk">Yield / acre</span><span class="hv" id="stat-yield">{% if latest_rec %}{{ latest_rec.predicted_yield_per_acre|floatformat:0 }} kg{% else %}â€”{% endif %}</span></div>
+                <div class="hstat"><span class="hk">Pred. Height</span><span class="hv" id="stat-height">{% if latest_rec %}{{ latest_rec.predicted_height_cm|floatformat:1 }} cm{% else %}â€”{% endif %}</span></div>
+                <div class="hstat"><span class="hk">Model Acc.</span><span class="hv" id="stat-acc">{% if latest_rec %}{{ latest_rec.model_accuracy|floatformat:1 }}%{% else %}â€”{% endif %}</span></div>
                 <div class="hstat"><span class="hk">Field</span><span class="hv">{{ session.field_acres }} acres</span></div>
               </div>
             </div>
@@ -314,7 +341,7 @@ tbody td{padding:8px 12px;color:var(--text)}
         <!-- Sensor trend mini chart -->
         <div class="card">
           <div class="card-header">
-            <span class="card-title">📡 Sensor Trend</span>
+            <span class="card-title">ðŸ“¡ Sensor Trend</span>
             <span style="font-size:.72rem;color:var(--text-3)">Last 20 readings</span>
           </div>
           <div class="card-body" style="padding-top:8px">
@@ -326,18 +353,18 @@ tbody td{padding:8px 12px;color:var(--text)}
       <!-- Recommendations -->
       <div class="card" style="margin-bottom:20px">
         <div class="card-header">
-          <span class="card-title">💡 AI Recommendations</span>
+          <span class="card-title">ðŸ’¡ AI Recommendations</span>
           <button class="btn btn-outline btn-sm" onclick="refreshRecs()">Refresh</button>
         </div>
         <div class="card-body">
-          <div class="rec-list" id="rec-list-ov"><div style="color:var(--text-3);font-size:.82rem">Loading…</div></div>
+          <div class="rec-list" id="rec-list-ov"><div style="color:var(--text-3);font-size:.82rem">Loadingâ€¦</div></div>
         </div>
       </div>
 
       <!-- Recent images (growth uploads for this session) -->
       <div class="card">
         <div class="card-header">
-          <span class="card-title">🖼 Recent Growth Images</span>
+          <span class="card-title">ðŸ–¼ Recent Growth Images</span>
           <button class="btn btn-outline btn-sm" onclick="switchTab('upload',null)">Upload Today</button>
         </div>
         <div class="card-body">
@@ -362,55 +389,130 @@ tbody td{padding:8px 12px;color:var(--text)}
     </div><!-- /overview -->
 
 
-    <!-- ══════════ TAB: GROWTH CHARTS ══════════ -->
+    <!-- â•â•â•â•â•â•â•â•â•â• TAB: GROWTH CHARTS â•â•â•â•â•â•â•â•â•â• -->
     <div id="tab-growth" class="tab-panel">
-      <div style="margin-bottom:18px">
-        <div style="font-size:1rem;font-weight:700">Growth Analysis</div>
-        <div style="font-size:.78rem;color:var(--text-3)">Actual vs predicted plant height and yield trajectory</div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-size:1rem;font-weight:700">Growth Analysis</div>
+          <div style="font-size:.78rem;color:var(--text-3)">Actual (ðŸ“· camera) vs Predicted (ðŸ¤– model) vs Ideal (ðŸ“ baseline)</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <span id="chart-model-badge" class="badge badge-blue" style="font-size:.68rem">Model v2.0</span>
+          <span id="chart-img-badge" class="badge badge-slate" style="font-size:.68rem">â€”</span>
+          <button class="btn btn-outline btn-sm" onclick="rebuildGrowthCharts()">â†» Refresh</button>
+        </div>
       </div>
 
+      <!-- Stats strip -->
+      <div class="three-col" id="chart-stats-strip" style="margin-bottom:20px">
+        <div class="summary-card" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;display:flex;align-items:center;gap:12px">
+          <div style="width:40px;height:40px;border-radius:10px;background:var(--blue-light);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">ðŸ“</div>
+          <div>
+            <div style="font-size:.68rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em">Mean Pred. Height</div>
+            <div style="font-size:1.3rem;font-weight:700;color:var(--text);line-height:1.1" id="stat-mean-pred-ht">â€”</div>
+          </div>
+        </div>
+        <div class="summary-card" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;display:flex;align-items:center;gap:12px">
+          <div style="width:40px;height:40px;border-radius:10px;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">ðŸŒ¿</div>
+          <div>
+            <div style="font-size:.68rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em">Mean Actual Height</div>
+            <div style="font-size:1.3rem;font-weight:700;color:var(--text);line-height:1.1" id="stat-mean-actual-ht">â€”</div>
+          </div>
+        </div>
+        <div class="summary-card" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;display:flex;align-items:center;gap:12px">
+          <div style="width:40px;height:40px;border-radius:10px;background:var(--teal-light);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">ðŸƒ</div>
+          <div>
+            <div style="font-size:.68rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em">Image Data Points</div>
+            <div style="font-size:1.3rem;font-weight:700;color:var(--text);line-height:1.1" id="stat-img-pts">â€”</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 1: Height + Yield -->
       <div class="two-col">
         <div class="card">
-          <div class="card-header"><span class="card-title">📏 Plant Height (cm)</span></div>
+          <div class="card-header">
+            <span class="card-title">ðŸ“ Plant Height â€” Actual vs Predicted</span>
+            <span class="badge badge-slate" style="font-size:.65rem">cm</span>
+          </div>
           <div class="card-body" style="padding-top:8px">
             <div class="chart-wrap-lg"><canvas id="heightChart"></canvas></div>
+            <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:.72rem;color:var(--text-3)">
+              <span>ðŸ“ Ideal: sigmoid baseline</span>
+              <span style="color:#2563eb">â— Predicted: RF+GBR ensemble</span>
+              <span style="color:#16a34a">â— Actual: image-derived</span>
+            </div>
           </div>
         </div>
         <div class="card">
-          <div class="card-header"><span class="card-title">🌾 Yield Projection (kg/acre)</span></div>
+          <div class="card-header">
+            <span class="card-title">ðŸŒ¾ Yield Projection â€” Actual vs Predicted</span>
+            <span class="badge badge-slate" style="font-size:.65rem">kg/acre</span>
+          </div>
           <div class="card-body" style="padding-top:8px">
             <div class="chart-wrap-lg"><canvas id="yieldChart"></canvas></div>
+            <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:.72rem;color:var(--text-3)">
+              <span>ðŸ“ Ideal: ramp baseline</span>
+              <span style="color:#7c3aed">â— Predicted: model output</span>
+            </div>
           </div>
         </div>
       </div>
 
+      <!-- Row 2: Greenness + Leaf Coverage -->
       <div class="two-col">
         <div class="card">
-          <div class="card-header"><span class="card-title">💚 Health Score Trend</span></div>
+          <div class="card-header">
+            <span class="card-title">ðŸƒ Greenness â€” Actual vs Predicted</span>
+            <span class="badge badge-slate" style="font-size:.65rem">ExG score 0â€“100</span>
+          </div>
           <div class="card-body" style="padding-top:8px">
-            <div class="chart-wrap-sm"><canvas id="healthChart"></canvas></div>
+            <div class="chart-wrap-sm"><canvas id="greenChart"></canvas></div>
+            <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:.72rem;color:var(--text-3)">
+              <span style="color:#0d9488">â— Actual: camera ExG index</span>
+              <span style="color:#94a3b8">â€” Predicted: model baseline</span>
+            </div>
           </div>
         </div>
         <div class="card">
-          <div class="card-header"><span class="card-title">🍃 Greenness Trend</span></div>
+          <div class="card-header">
+            <span class="card-title">ðŸŒ¿ Leaf Coverage Trend</span>
+            <span class="badge badge-slate" style="font-size:.65rem">% of frame</span>
+          </div>
           <div class="card-body" style="padding-top:8px">
-            <div class="chart-wrap-sm"><canvas id="greenChart"></canvas></div>
+            <div class="chart-wrap-sm"><canvas id="leafChart"></canvas></div>
+            <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:.72rem;color:var(--text-3)">
+              <span style="color:#16a34a">â— Camera HSV-mask coverage</span>
+            </div>
           </div>
         </div>
       </div>
 
+      <!-- Row 3: Health score (full width) -->
       <div class="card">
         <div class="card-header">
-          <span class="card-title">💡 Current Recommendations</span>
+          <span class="card-title">ðŸ’š Health Score Trend</span>
+          <span class="badge badge-slate" style="font-size:.65rem">rule-based 0â€“100</span>
+        </div>
+        <div class="card-body" style="padding-top:8px">
+          <div style="height:180px"><canvas id="healthChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Recommendations -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">ðŸ’¡ Current Recommendations</span>
+          <span id="rec-img-note" class="badge badge-green" style="font-size:.65rem;display:none">ðŸ“· Image-enhanced</span>
         </div>
         <div class="card-body">
-          <div class="rec-list" id="rec-list-gr"><div style="color:var(--text-3);font-size:.82rem">Loading…</div></div>
+          <div class="rec-list" id="rec-list-gr"><div style="color:var(--text-3);font-size:.82rem">Loadingâ€¦</div></div>
         </div>
       </div>
     </div><!-- /growth -->
 
 
-    <!-- ══════════ TAB: DAILY UPLOAD ══════════ -->
+    <!-- â•â•â•â•â•â•â•â•â•â• TAB: DAILY UPLOAD â•â•â•â•â•â•â•â•â•â• -->
     <div id="tab-upload" class="tab-panel">
       <div style="margin-bottom:18px">
         <div style="font-size:1rem;font-weight:700">Daily Image Upload</div>
@@ -421,15 +523,15 @@ tbody td{padding:8px 12px;color:var(--text)}
         <div class="slot-card {% if morning_done %}done{% else %}pending{% endif %}">
           <div class="slot-dot"></div>
           <div class="slot-info">
-            <div class="slot-name">☀️ Morning Slot</div>
-            <div class="slot-sub">{% if morning_done %}Uploaded today{% else %}Pending — before 2 PM{% endif %}</div>
+            <div class="slot-name">â˜€ï¸ Morning Slot</div>
+            <div class="slot-sub">{% if morning_done %}Uploaded today{% else %}Pending â€” before 2 PM{% endif %}</div>
           </div>
         </div>
         <div class="slot-card {% if evening_done %}done{% else %}pending{% endif %}">
           <div class="slot-dot"></div>
           <div class="slot-info">
-            <div class="slot-name">🌙 Evening Slot</div>
-            <div class="slot-sub">{% if evening_done %}Uploaded today{% else %}Pending — after 2 PM{% endif %}</div>
+            <div class="slot-name">ðŸŒ™ Evening Slot</div>
+            <div class="slot-sub">{% if evening_done %}Uploaded today{% else %}Pending â€” after 2 PM{% endif %}</div>
           </div>
         </div>
       </div>
@@ -437,24 +539,24 @@ tbody td{padding:8px 12px;color:var(--text)}
       <div class="two-col">
         <div class="card">
           <div class="card-header">
-            <span class="card-title">📷 Upload Image</span>
-            <span class="badge badge-blue" id="slot-badge">Detecting slot…</span>
+            <span class="card-title">ðŸ“· Upload Image</span>
+            <span class="badge badge-blue" id="slot-badge">Detecting slotâ€¦</span>
           </div>
           <div class="card-body">
             <div class="upload-zone" id="up-zone" onclick="document.getElementById('up-file').click()">
-              <div class="upload-zone-icon">🌿</div>
+              <div class="upload-zone-icon">ðŸŒ¿</div>
               <div class="upload-zone-text">Click or drag plant image here</div>
-              <div class="upload-zone-hint">JPG, PNG — plant leaf close-up preferred</div>
+              <div class="upload-zone-hint">JPG, PNG â€” plant leaf close-up preferred</div>
             </div>
             <input type="file" id="up-file" accept="image/*" onchange="previewUpload(this)"/>
             <img class="preview-img" id="up-preview" src="" alt="preview"/>
             <div class="divider"></div>
             <div class="form-group">
               <label class="form-label">Observation Note (optional)</label>
-              <textarea class="form-textarea" id="up-notes" rows="2" placeholder="Any observations about today's growth…"></textarea>
+              <textarea class="form-textarea" id="up-notes" rows="2" placeholder="Any observations about today's growthâ€¦"></textarea>
             </div>
             <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center" onclick="uploadGrowthImage()" id="up-btn">
-              📤 Submit Growth Image
+              ðŸ“¤ Submit Growth Image
             </button>
           </div>
         </div>
@@ -471,7 +573,7 @@ tbody td{padding:8px 12px;color:var(--text)}
           </div>
           <div class="card" id="up-placeholder">
             <div class="card-body" style="text-align:center;padding:36px 20px;color:var(--text-3)">
-              <div style="font-size:2.2rem;margin-bottom:8px">📷</div>
+              <div style="font-size:2.2rem;margin-bottom:8px">ðŸ“·</div>
               <div style="font-weight:600;margin-bottom:4px;color:var(--text-2)">No upload yet</div>
               <div style="font-size:.77rem">Upload a plant photo to get greenness score and disease check</div>
             </div>
@@ -481,7 +583,7 @@ tbody td{padding:8px 12px;color:var(--text)}
     </div><!-- /upload -->
 
 
-    <!-- ══════════ TAB: GROWTH LOG ══════════ -->
+    <!-- â•â•â•â•â•â•â•â•â•â• TAB: GROWTH LOG â•â•â•â•â•â•â•â•â•â• -->
     <div id="tab-log" class="tab-panel">
       <div style="margin-bottom:18px">
         <div style="font-size:1rem;font-weight:700">Growth Log</div>
@@ -505,13 +607,13 @@ tbody td{padding:8px 12px;color:var(--text)}
                   <td>{{ r.date }}</td>
                   <td>{{ r.day_number }}</td>
                   <td><span class="badge {% if r.slot == 'morning' %}badge-blue{% elif r.slot == 'evening' %}badge-purple{% else %}badge-slate{% endif %}">{{ r.slot }}</span></td>
-                  <td>{% if r.actual_height_cm %}{{ r.actual_height_cm|floatformat:1 }} cm{% else %}<span class="td-muted">—</span>{% endif %}</td>
-                  <td>{% if r.predicted_height_cm %}{{ r.predicted_height_cm|floatformat:1 }} cm{% else %}<span class="td-muted">—</span>{% endif %}</td>
-                  <td>{% if r.actual_greenness_score %}{{ r.actual_greenness_score|floatformat:1 }}{% else %}<span class="td-muted">—</span>{% endif %}</td>
-                  <td>{% if r.predicted_yield_per_acre %}{{ r.predicted_yield_per_acre|floatformat:0 }} kg{% else %}<span class="td-muted">—</span>{% endif %}</td>
-                  <td>{% if r.health_score %}<span style="font-weight:600;color:{% if r.health_score >= 75 %}var(--green){% elif r.health_score >= 50 %}var(--amber){% else %}var(--red){% endif %}">{{ r.health_score|floatformat:0 }}%</span>{% else %}<span class="td-muted">—</span>{% endif %}</td>
-                  <td>{% if r.growth_stage %}<span class="badge badge-blue" style="font-size:.64rem">{{ r.growth_stage }}</span>{% else %}<span class="td-muted">—</span>{% endif %}</td>
-                  <td>{% if r.image %}<img src="{{ r.image.image.url }}" style="width:36px;height:36px;object-fit:cover;border-radius:4px;border:1px solid var(--border)"/>{% else %}<span class="td-muted">—</span>{% endif %}</td>
+                  <td>{% if r.actual_height_cm %}{{ r.actual_height_cm|floatformat:1 }} cm{% else %}<span class="td-muted">â€”</span>{% endif %}</td>
+                  <td>{% if r.predicted_height_cm %}{{ r.predicted_height_cm|floatformat:1 }} cm{% else %}<span class="td-muted">â€”</span>{% endif %}</td>
+                  <td>{% if r.actual_greenness_score %}{{ r.actual_greenness_score|floatformat:1 }}{% else %}<span class="td-muted">â€”</span>{% endif %}</td>
+                  <td>{% if r.predicted_yield_per_acre %}{{ r.predicted_yield_per_acre|floatformat:0 }} kg{% else %}<span class="td-muted">â€”</span>{% endif %}</td>
+                  <td>{% if r.health_score %}<span style="font-weight:600;color:{% if r.health_score >= 75 %}var(--green){% elif r.health_score >= 50 %}var(--amber){% else %}var(--red){% endif %}">{{ r.health_score|floatformat:0 }}%</span>{% else %}<span class="td-muted">â€”</span>{% endif %}</td>
+                  <td>{% if r.growth_stage %}<span class="badge badge-blue" style="font-size:.64rem">{{ r.growth_stage }}</span>{% else %}<span class="td-muted">â€”</span>{% endif %}</td>
+                  <td>{% if r.image %}<img src="{{ r.image.image.url }}" style="width:36px;height:36px;object-fit:cover;border-radius:4px;border:1px solid var(--border)"/>{% else %}<span class="td-muted">â€”</span>{% endif %}</td>
                 </tr>
                 {% empty %}
                 <tr><td colspan="10" style="text-align:center;color:var(--text-3);padding:24px">No growth records yet. Upload images or connect your ESP32.</td></tr>
@@ -524,14 +626,14 @@ tbody td{padding:8px 12px;color:var(--text)}
     </div><!-- /log -->
 
 
-    <!-- ══════════ TAB: FIELD NOTES ══════════ -->
+    <!-- â•â•â•â•â•â•â•â•â•â• TAB: FIELD NOTES â•â•â•â•â•â•â•â•â•â• -->
     <div id="tab-notes" class="tab-panel">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
         <div>
           <div style="font-size:1rem;font-weight:700">Field Notes</div>
           <div style="font-size:.78rem;color:var(--text-3)">Journal observations, actions taken and milestones</div>
         </div>
-        <button class="btn btn-primary btn-sm" onclick="openModal('add-note-modal')">＋ Add Note</button>
+        <button class="btn btn-primary btn-sm" onclick="openModal('add-note-modal')">ï¼‹ Add Note</button>
       </div>
 
       <div class="note-list" id="note-list">
@@ -546,7 +648,7 @@ tbody td{padding:8px 12px;color:var(--text)}
         </div>
         {% empty %}
         <div style="text-align:center;padding:32px 20px;background:var(--surface);border:2px dashed var(--border);border-radius:var(--r);color:var(--text-3)">
-          <div style="font-size:1.8rem;margin-bottom:8px">📝</div>
+          <div style="font-size:1.8rem;margin-bottom:8px">ðŸ“</div>
           <div style="font-weight:600;color:var(--text-2);margin-bottom:4px">No notes yet</div>
           <div style="font-size:.78rem">Add your first field observation</div>
         </div>
@@ -555,14 +657,14 @@ tbody td{padding:8px 12px;color:var(--text)}
     </div><!-- /notes -->
 
 
-    <!-- ══════════ TAB: SENSOR HISTORY ══════════ -->
+    <!-- â•â•â•â•â•â•â•â•â•â• TAB: SENSOR HISTORY â•â•â•â•â•â•â•â•â•â• -->
     <div id="tab-sensor" class="tab-panel">
       <div style="margin-bottom:18px">
         <div style="font-size:1rem;font-weight:700">Sensor History</div>
         <div style="font-size:.78rem;color:var(--text-3)">All IoT readings for this crop session</div>
       </div>
       <div class="card" style="margin-bottom:20px">
-        <div class="card-header"><span class="card-title">📡 Readings Over Time</span></div>
+        <div class="card-header"><span class="card-title">ðŸ“¡ Readings Over Time</span></div>
         <div class="card-body" style="padding-top:8px">
           <div style="height:240px"><canvas id="sensorFullChart"></canvas></div>
         </div>
@@ -572,19 +674,19 @@ tbody td{padding:8px 12px;color:var(--text)}
           <div class="tbl-wrap">
             <table>
               <thead>
-                <tr><th>Time</th><th>pH</th><th>Temp (°C)</th><th>Humidity (%)</th><th>Moisture (%)</th><th>N</th><th>P</th><th>K</th><th>Device</th></tr>
+                <tr><th>Time</th><th>pH</th><th>Temp (Â°C)</th><th>Humidity (%)</th><th>Moisture (%)</th><th>N</th><th>P</th><th>K</th><th>Device</th></tr>
               </thead>
               <tbody id="sensor-tbody">
                 {% for s in session.sensor_readings.all|slice:":50" %}
                 <tr>
                   <td class="td-muted">{{ s.timestamp|date:"d M, H:i" }}</td>
-                  <td>{% if s.ph %}{{ s.ph|floatformat:1 }}{% else %}<span class="td-muted">—</span>{% endif %}</td>
-                  <td>{% if s.temperature %}{{ s.temperature|floatformat:1 }}{% else %}<span class="td-muted">—</span>{% endif %}</td>
-                  <td>{% if s.humidity %}{{ s.humidity|floatformat:0 }}{% else %}<span class="td-muted">—</span>{% endif %}</td>
-                  <td>{% if s.soil_moisture %}{{ s.soil_moisture|floatformat:0 }}{% else %}<span class="td-muted">—</span>{% endif %}</td>
-                  <td>{% if s.npk_nitrogen %}{{ s.npk_nitrogen|floatformat:0 }}{% else %}<span class="td-muted">—</span>{% endif %}</td>
-                  <td>{% if s.npk_phosphorus %}{{ s.npk_phosphorus|floatformat:0 }}{% else %}<span class="td-muted">—</span>{% endif %}</td>
-                  <td>{% if s.npk_potassium %}{{ s.npk_potassium|floatformat:0 }}{% else %}<span class="td-muted">—</span>{% endif %}</td>
+                  <td>{% if s.ph %}{{ s.ph|floatformat:1 }}{% else %}<span class="td-muted">â€”</span>{% endif %}</td>
+                  <td>{% if s.temperature %}{{ s.temperature|floatformat:1 }}{% else %}<span class="td-muted">â€”</span>{% endif %}</td>
+                  <td>{% if s.humidity %}{{ s.humidity|floatformat:0 }}{% else %}<span class="td-muted">â€”</span>{% endif %}</td>
+                  <td>{% if s.soil_moisture %}{{ s.soil_moisture|floatformat:0 }}{% else %}<span class="td-muted">â€”</span>{% endif %}</td>
+                  <td>{% if s.npk_nitrogen %}{{ s.npk_nitrogen|floatformat:0 }}{% else %}<span class="td-muted">â€”</span>{% endif %}</td>
+                  <td>{% if s.npk_phosphorus %}{{ s.npk_phosphorus|floatformat:0 }}{% else %}<span class="td-muted">â€”</span>{% endif %}</td>
+                  <td>{% if s.npk_potassium %}{{ s.npk_potassium|floatformat:0 }}{% else %}<span class="td-muted">â€”</span>{% endif %}</td>
                   <td class="td-muted">{{ s.device_id }}</td>
                 </tr>
                 {% empty %}
@@ -598,14 +700,14 @@ tbody td{padding:8px 12px;color:var(--text)}
     </div><!-- /sensor -->
 
 
-    <!-- ══════════ TAB: SESSION INFO ══════════ -->
+    <!-- â•â•â•â•â•â•â•â•â•â• TAB: SESSION INFO â•â•â•â•â•â•â•â•â•â• -->
     <div id="tab-info" class="tab-panel">
       <div style="margin-bottom:18px">
         <div style="font-size:1rem;font-weight:700">Session Information</div>
       </div>
       <div class="two-col">
         <div class="card">
-          <div class="card-header"><span class="card-title">🌱 Crop Details</span></div>
+          <div class="card-header"><span class="card-title">ðŸŒ± Crop Details</span></div>
           <div class="card-body">
             <table style="width:100%;font-size:.82rem">
               <tr><td style="color:var(--text-3);padding:5px 0;width:140px">Crop</td><td style="font-weight:600">{{ session.crop_name }}</td></tr>
@@ -621,7 +723,7 @@ tbody td{padding:8px 12px;color:var(--text)}
           </div>
         </div>
         <div class="card">
-          <div class="card-header"><span class="card-title">📊 Stats</span></div>
+          <div class="card-header"><span class="card-title">ðŸ“Š Stats</span></div>
           <div class="card-body">
             <table style="width:100%;font-size:.82rem">
               <tr><td style="color:var(--text-3);padding:5px 0;width:140px">Days Running</td><td style="font-weight:600">{{ session.days_since_sowing }}</td></tr>
@@ -642,10 +744,10 @@ tbody td{padding:8px 12px;color:var(--text)}
 
       {% if session.status == 'active' %}
       <div class="card" style="border-color:#fca5a5">
-        <div class="card-header"><span class="card-title">⚠️ Danger Zone</span></div>
+        <div class="card-header"><span class="card-title">âš ï¸ Danger Zone</span></div>
         <div class="card-body" style="display:flex;gap:12px;flex-wrap:wrap">
-          <button class="btn btn-outline" onclick="closeSession()">✅ Mark as Completed</button>
-          <button class="btn btn-danger" onclick="confirmDelete()">🗑 Delete Session</button>
+          <button class="btn btn-outline" onclick="closeSession()">âœ… Mark as Completed</button>
+          <button class="btn btn-danger" onclick="confirmDelete()">ðŸ—‘ Delete Session</button>
         </div>
       </div>
       {% endif %}
@@ -654,12 +756,12 @@ tbody td{padding:8px 12px;color:var(--text)}
   </main>
 </div><!-- /shell -->
 
-<!-- ── Add Note Modal ── -->
+<!-- â”€â”€ Add Note Modal â”€â”€ -->
 <div class="modal-overlay" id="add-note-modal">
   <div class="modal">
     <div class="modal-header">
-      <h3>📝 Add Field Note</h3>
-      <button class="modal-close" onclick="closeModal('add-note-modal')">×</button>
+      <h3>ðŸ“ Add Field Note</h3>
+      <button class="modal-close" onclick="closeModal('add-note-modal')">Ã—</button>
     </div>
     <div class="modal-body">
       <div class="form-group">
@@ -677,7 +779,7 @@ tbody td{padding:8px 12px;color:var(--text)}
       </div>
       <div class="form-group">
         <label class="form-label">Details</label>
-        <textarea class="form-textarea" id="note-body" placeholder="More details, quantities, observations…"></textarea>
+        <textarea class="form-textarea" id="note-body" placeholder="More details, quantities, observationsâ€¦"></textarea>
       </div>
     </div>
     <div class="modal-footer">
@@ -693,16 +795,18 @@ tbody td{padding:8px 12px;color:var(--text)}
 {% block extra_scripts %}
 <script>
 const SID = {{ session.id }};
-const SENSOR_HISTORY = {{ sensor_history_json|safe }};
-const CHART_DAYS     = {{ chart_days_json|safe }};
-const ACTUAL_HT      = {{ actual_heights_json|safe }};
-const PRED_HT        = {{ pred_heights_json|safe }};
-const PRED_YIELD     = {{ pred_yields_json|safe }};
+const SENSOR_HISTORY  = {{ sensor_history_json|safe }};
+const CHART_DAYS      = {{ chart_days_json|safe }};
+const ACTUAL_HT       = {{ actual_heights_json|safe }};
+const PRED_HT         = {{ pred_heights_json|safe }};
+const PRED_YIELD      = {{ pred_yields_json|safe }};
+const ACTUAL_GREEN    = {{ actual_greenness_json|safe }};
+const ACTUAL_LEAFCOV  = {{ actual_leaf_cov_json|safe }};
 
 const charts = {};
 let growthBuilt = false, sensorFullBuilt = false;
 
-/* ── Tab switching ── */
+/* â”€â”€ Tab switching â”€â”€ */
 function switchTab(name, el) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.snav-item').forEach(n => n.classList.remove('active'));
@@ -710,16 +814,53 @@ function switchTab(name, el) {
   if (el) el.classList.add('active');
   else {
     document.querySelectorAll('.snav-item').forEach(n => {
-      if (n.getAttribute('onclick') && n.getAttribute('onclick').includes("'"+name+"'")) n.classList.add('active');
+      if (n.getAttribute('onclick') && n.getAttribute('onclick').includes("'"+name+"'"))
+        n.classList.add('active');
     });
   }
-  if (name === 'growth' && !growthBuilt)      { buildGrowthCharts(); growthBuilt = true; }
-  if (name === 'sensor' && !sensorFullBuilt)  { buildSensorFullChart(); sensorFullBuilt = true; }
-  if (name === 'growth')  fetchRecs('rec-list-gr');
-  if (name === 'upload')  detectSlot();
+  if (name === 'growth' && !growthBuilt) { buildGrowthCharts(); growthBuilt = true; }
+  if (name === 'sensor' && !sensorFullBuilt) { buildSensorFullChart(); sensorFullBuilt = true; }
+  if (name === 'growth') fetchRecs('rec-list-gr');
+  if (name === 'upload') detectSlot();
 }
 
-/* ── Mini sensor chart ── */
+function rebuildGrowthCharts() {
+  growthBuilt = false;
+  buildGrowthCharts();
+  growthBuilt = true;
+}
+
+/* â”€â”€ Shared chart options factory â”€â”€ */
+function chartOpts(xLabel, yLabel, legendPos='top') {
+  return {
+    responsive: true, maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { position: legendPos, labels: { boxWidth: 11, padding: 12, font: { size: 11 } } },
+      tooltip: {
+        callbacks: {
+          label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y != null ? ctx.parsed.y : 'â€”'}`
+        }
+      }
+    },
+    scales: {
+      x: { title: { display: true, text: xLabel, font: { size: 11 } }, grid: { display: false }, ticks: { maxTicksLimit: 10 } },
+      y: { title: { display: true, text: yLabel, font: { size: 11 } }, grid: { color: '#f1f5f9' }, ticks: { maxTicksLimit: 6 } }
+    }
+  };
+}
+
+/* Maps sparse (days, values) onto a dense idealDays axis â€” nulls for missing days */
+function mapToIdeal(days, values, idealDays) {
+  const arr = new Array(idealDays.length).fill(null);
+  days.forEach((d, i) => {
+    const idx = idealDays.indexOf(d);
+    if (idx >= 0) arr[idx] = values[i];
+  });
+  return arr;
+}
+
+/* â”€â”€ Mini sensor chart (overview) â”€â”€ */
 function buildMiniChart() {
   const ctx = document.getElementById('miniChart');
   if (!ctx || !SENSOR_HISTORY.length) return;
@@ -729,177 +870,315 @@ function buildMiniChart() {
     data: {
       labels: SENSOR_HISTORY.map(s => s.timestamp),
       datasets: [
-        { label:'pH',        data:SENSOR_HISTORY.map(s=>s.ph),          borderColor:'#2d9e57',backgroundColor:'rgba(45,158,87,.07)',tension:.4,pointRadius:2,fill:true },
-        { label:'Temp (°C)', data:SENSOR_HISTORY.map(s=>s.temperature), borderColor:'#d97706',backgroundColor:'transparent',tension:.4,pointRadius:2 },
-        { label:'Humidity',  data:SENSOR_HISTORY.map(s=>s.humidity),    borderColor:'#2563eb',backgroundColor:'transparent',tension:.4,pointRadius:2 },
+        { label:'pH',        data: SENSOR_HISTORY.map(s=>s.ph),          borderColor:'#2d9e57', backgroundColor:'rgba(45,158,87,.07)', tension:.4, pointRadius:2, fill:true },
+        { label:'Temp (Â°C)', data: SENSOR_HISTORY.map(s=>s.temperature), borderColor:'#d97706', backgroundColor:'transparent',           tension:.4, pointRadius:2 },
+        { label:'Humidity',  data: SENSOR_HISTORY.map(s=>s.humidity),    borderColor:'#2563eb', backgroundColor:'transparent',           tension:.4, pointRadius:2 },
       ]
     },
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{position:'top',labels:{boxWidth:10,padding:10}}},
-      scales:{x:{grid:{display:false},ticks:{maxTicksLimit:6}},y:{grid:{color:'#f1f5f9'},ticks:{maxTicksLimit:5}}}
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ position:'top', labels:{ boxWidth:10, padding:10 } } },
+      scales:{ x:{ grid:{ display:false }, ticks:{ maxTicksLimit:6 } }, y:{ grid:{ color:'#f1f5f9' }, ticks:{ maxTicksLimit:5 } } }
     }
   });
 }
 
-/* ── Growth charts (lazy) ── */
+/* â”€â”€ Growth charts (lazy, fetched from API) â”€â”€ */
 function buildGrowthCharts() {
   fetch(`/api/sessions/${SID}/growth-chart`)
     .then(r => r.json())
     .then(d => {
+      updateChartBadges(d);
       buildHeightChart(d);
       buildYieldChart(d);
-      buildHealthChart(d);
       buildGreenChart(d);
-    });
+      buildLeafChart(d);
+      buildHealthChart(d);
+      updateChartStats(d);
+    })
+    .catch(err => console.error('Chart load error:', err));
 }
 
-function buildHeightChart(d) {
-  const ctx = document.getElementById('heightChart'); if(!ctx) return;
-  if (charts.ht) charts.ht.destroy();
-  charts.ht = new Chart(ctx,{
-    type:'line',
-    data:{
-      labels:d.ideal_days,
-      datasets:[
-        {label:'Ideal',    data:d.ideal_heights,   borderColor:'#cbd5e1',borderDash:[5,4],tension:.4,pointRadius:0,backgroundColor:'transparent'},
-        {label:'Predicted',data:mapToIdeal(d.days,d.predicted_heights,d.ideal_days),borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,.07)',tension:.4,pointRadius:3,fill:true},
-        {label:'Actual',   data:mapToIdeal(d.days,d.actual_heights,d.ideal_days),   borderColor:'#2d9e57',backgroundColor:'transparent',tension:.4,pointRadius:4},
-      ]
-    },
-    options:chartOpts('Day','Height (cm)')
-  });
-}
-
-function buildYieldChart(d) {
-  const ctx = document.getElementById('yieldChart'); if(!ctx) return;
-  if (charts.yd) charts.yd.destroy();
-  charts.yd = new Chart(ctx,{
-    type:'line',
-    data:{
-      labels:d.ideal_days,
-      datasets:[
-        {label:'Ideal',          data:d.ideal_yields,  borderColor:'#cbd5e1',borderDash:[5,4],tension:.4,pointRadius:0,backgroundColor:'transparent'},
-        {label:'Predicted Yield',data:mapToIdeal(d.days,d.predicted_yields,d.ideal_days),borderColor:'#7c3aed',backgroundColor:'rgba(124,58,237,.07)',tension:.4,pointRadius:3,fill:true},
-      ]
-    },
-    options:chartOpts('Day','kg / acre')
-  });
-}
-
-function buildHealthChart(d) {
-  const ctx = document.getElementById('healthChart'); if(!ctx) return;
-  if (charts.hc) charts.hc.destroy();
-  charts.hc = new Chart(ctx,{
-    type:'line',
-    data:{
-      labels:d.days,
-      datasets:[{label:'Health Score',data:d.health_trend,borderColor:'#2d9e57',backgroundColor:'rgba(45,158,87,.08)',tension:.4,pointRadius:3,fill:true}]
-    },
-    options:chartOpts('Day','Score',false)
-  });
-}
-
-function buildGreenChart(d) {
-  const ctx = document.getElementById('greenChart'); if(!ctx) return;
-  if (charts.gc) charts.gc.destroy();
-  charts.gc = new Chart(ctx,{
-    type:'line',
-    data:{
-      labels:d.days,
-      datasets:[{label:'Greenness',data:d.greenness_trend,borderColor:'#0d9488',backgroundColor:'rgba(13,148,136,.08)',tension:.4,pointRadius:3,fill:true}]
-    },
-    options:chartOpts('Day','Greenness %',false)
-  });
-}
-
-function buildSensorFullChart() {
-  const ctx = document.getElementById('sensorFullChart'); if(!ctx) return;
-  if (!SENSOR_HISTORY.length) return;
-  if (charts.sf) charts.sf.destroy();
-  charts.sf = new Chart(ctx,{
-    type:'line',
-    data:{
-      labels:SENSOR_HISTORY.map(s=>s.timestamp),
-      datasets:[
-        {label:'pH',        data:SENSOR_HISTORY.map(s=>s.ph),          borderColor:'#2d9e57',tension:.4,pointRadius:2,backgroundColor:'transparent'},
-        {label:'Temp (°C)', data:SENSOR_HISTORY.map(s=>s.temperature), borderColor:'#d97706',tension:.4,pointRadius:2,backgroundColor:'transparent'},
-        {label:'Humidity',  data:SENSOR_HISTORY.map(s=>s.humidity),    borderColor:'#2563eb',tension:.4,pointRadius:2,backgroundColor:'transparent'},
-        {label:'Moisture',  data:SENSOR_HISTORY.map(s=>s.soil_moisture),borderColor:'#0d9488',tension:.4,pointRadius:2,backgroundColor:'transparent'},
-        {label:'N (mg/kg)', data:SENSOR_HISTORY.map(s=>s.npk_nitrogen),borderColor:'#7c3aed',tension:.4,pointRadius:2,backgroundColor:'transparent'},
-      ]
-    },
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{position:'top',labels:{boxWidth:10,padding:12}}},
-      scales:{x:{grid:{display:false},ticks:{maxTicksLimit:8}},y:{grid:{color:'#f1f5f9'}}}
+function updateChartBadges(d) {
+  const mb = document.getElementById('chart-model-badge');
+  if (mb) mb.textContent = `Model ${d.model_version || 'v2.0'} Â· Yield RÂ² ${{% if latest_rec %}{{ latest_rec.model_accuracy|floatformat:1 }}{% else %}0{% endif %}}%`;
+  const ib = document.getElementById('chart-img-badge');
+  if (ib) {
+    if (d.has_image_data) {
+      ib.textContent = 'ðŸ“· Image data: ON';
+      ib.className = 'badge badge-green';
+      const rn = document.getElementById('rec-img-note');
+      if (rn) rn.style.display = 'inline-flex';
+    } else {
+      ib.textContent = 'ðŸ“· No image data yet';
+      ib.className = 'badge badge-slate';
     }
+  }
+}
+
+function updateChartStats(d) {
+  setV('stat-mean-pred-ht',   d.mean_pred_height   != null ? d.mean_pred_height   + ' cm' : 'â€”');
+  setV('stat-mean-actual-ht', d.mean_actual_height != null ? d.mean_actual_height + ' cm' : 'â€”');
+  const imgPts = (d.greenness_actual || []).filter(v => v != null).length;
+  setV('stat-img-pts', imgPts + ' days');
+}
+
+/* â”€â”€ Height: Ideal / Predicted / Actual â”€â”€ */
+function buildHeightChart(d) {
+  const ctx = document.getElementById('heightChart'); if (!ctx) return;
+  if (charts.ht) charts.ht.destroy();
+  charts.ht = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: d.ideal_days,
+      datasets: [
+        {
+          label: 'Ideal (baseline)',
+          data: d.ideal_heights,
+          borderColor: '#cbd5e1', borderDash: [5, 4],
+          tension: .4, pointRadius: 0, backgroundColor: 'transparent', borderWidth: 1.5
+        },
+        {
+          label: 'Predicted (RF+GBR)',
+          data: mapToIdeal(d.days, d.predicted_heights, d.ideal_days),
+          borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,.08)',
+          tension: .4, pointRadius: 3, pointHoverRadius: 5, fill: true, borderWidth: 2
+        },
+        {
+          label: 'Actual (camera)',
+          data: mapToIdeal(d.days, d.actual_heights, d.ideal_days),
+          borderColor: '#16a34a', backgroundColor: 'transparent',
+          tension: .3, pointRadius: 5, pointHoverRadius: 7,
+          pointStyle: 'rectRot', borderWidth: 2,
+          spanGaps: false
+        },
+      ]
+    },
+    options: chartOpts('Day of Crop', 'Height (cm)')
   });
 }
 
-function chartOpts(xLabel, yLabel, showIdeal=true) {
-  return {
-    responsive:true,maintainAspectRatio:false,
-    plugins:{legend:{position:'top',labels:{boxWidth:10,padding:12}}},
-    scales:{
-      x:{title:{display:true,text:xLabel},grid:{display:false},ticks:{maxTicksLimit:10}},
-      y:{title:{display:true,text:yLabel},grid:{color:'#f1f5f9'},ticks:{maxTicksLimit:6}}
+/* â”€â”€ Yield: Ideal / Predicted â”€â”€ */
+function buildYieldChart(d) {
+  const ctx = document.getElementById('yieldChart'); if (!ctx) return;
+  if (charts.yd) charts.yd.destroy();
+  charts.yd = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: d.ideal_days,
+      datasets: [
+        {
+          label: 'Ideal (baseline)',
+          data: d.ideal_yields,
+          borderColor: '#cbd5e1', borderDash: [5, 4],
+          tension: .4, pointRadius: 0, backgroundColor: 'transparent', borderWidth: 1.5
+        },
+        {
+          label: 'Predicted Yield',
+          data: mapToIdeal(d.days, d.predicted_yields, d.ideal_days),
+          borderColor: '#7c3aed', backgroundColor: 'rgba(124,58,237,.08)',
+          tension: .4, pointRadius: 3, pointHoverRadius: 5, fill: true, borderWidth: 2
+        },
+      ]
+    },
+    options: chartOpts('Day of Crop', 'kg / acre')
+  });
+}
+
+/* â”€â”€ Greenness: Actual (camera) vs Predicted (model baseline) â”€â”€ */
+function buildGreenChart(d) {
+  const ctx = document.getElementById('greenChart'); if (!ctx) return;
+  if (charts.gc) charts.gc.destroy();
+  charts.gc = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: d.days,
+      datasets: [
+        {
+          label: 'Predicted (baseline)',
+          data: d.greenness_predicted,
+          borderColor: '#94a3b8', borderDash: [4, 3],
+          tension: .4, pointRadius: 0, backgroundColor: 'transparent', borderWidth: 1.5
+        },
+        {
+          label: 'Actual (camera ExG)',
+          data: d.greenness_actual,
+          borderColor: '#0d9488', backgroundColor: 'rgba(13,148,136,.08)',
+          tension: .3, pointRadius: 4, pointHoverRadius: 6,
+          pointStyle: 'circle', fill: true, borderWidth: 2,
+          spanGaps: false
+        },
+      ]
+    },
+    options: chartOpts('Day of Crop', 'Greenness Score (0â€“100)')
+  });
+}
+
+/* â”€â”€ Leaf coverage â”€â”€ */
+function buildLeafChart(d) {
+  const ctx = document.getElementById('leafChart'); if (!ctx) return;
+  if (charts.lc) charts.lc.destroy();
+  charts.lc = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: d.days,
+      datasets: [
+        {
+          label: 'Leaf Coverage %',
+          data: d.leaf_coverage_trend,
+          borderColor: '#16a34a', backgroundColor: 'rgba(22,163,74,.09)',
+          tension: .3, pointRadius: 4, pointHoverRadius: 6, fill: true, borderWidth: 2,
+          spanGaps: false
+        },
+      ]
+    },
+    options: chartOpts('Day of Crop', 'Coverage (%)')
+  });
+}
+
+/* â”€â”€ Health score â”€â”€ */
+function buildHealthChart(d) {
+  const ctx = document.getElementById('healthChart'); if (!ctx) return;
+  if (charts.hc) charts.hc.destroy();
+
+  // Colour-coded background zones
+  const plugin = {
+    id: 'healthZones',
+    beforeDraw(chart) {
+      const { ctx: c, chartArea: { left, right, top, bottom }, scales: { y } } = chart;
+      const zones = [
+        { min: 75, max: 100, color: 'rgba(22,163,74,.06)' },
+        { min: 50, max: 75,  color: 'rgba(217,119,6,.07)' },
+        { min: 0,  max: 50,  color: 'rgba(220,38,38,.06)' },
+      ];
+      zones.forEach(z => {
+        const yTop = y.getPixelForValue(Math.min(z.max, y.max));
+        const yBot = y.getPixelForValue(Math.max(z.min, y.min));
+        c.save();
+        c.fillStyle = z.color;
+        c.fillRect(left, yTop, right - left, yBot - yTop);
+        c.restore();
+      });
     }
   };
+
+  charts.hc = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: d.days,
+      datasets: [{
+        label: 'Health Score',
+        data: d.health_trend,
+        borderColor: '#2d9e57', backgroundColor: 'rgba(45,158,87,.09)',
+        tension: .4, pointRadius: 4, pointHoverRadius: 6, fill: true, borderWidth: 2
+      }]
+    },
+    options: {
+      ...chartOpts('Day of Crop', 'Health (0â€“100)'),
+      scales: {
+        x: { grid: { display: false }, ticks: { maxTicksLimit: 10 } },
+        y: { min: 0, max: 100, grid: { color: '#f1f5f9' }, ticks: { maxTicksLimit: 6 } }
+      }
+    },
+    plugins: [plugin]
+  });
 }
 
-function mapToIdeal(days, values, idealDays) {
-  const arr = new Array(idealDays.length).fill(null);
-  days.forEach((d,i) => { const idx = idealDays.indexOf(d); if(idx>=0) arr[idx]=values[i]; });
-  return arr;
+/* â”€â”€ Full sensor history chart â”€â”€ */
+function buildSensorFullChart() {
+  const ctx = document.getElementById('sensorFullChart'); if (!ctx) return;
+  if (!SENSOR_HISTORY.length) return;
+  if (charts.sf) charts.sf.destroy();
+  charts.sf = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: SENSOR_HISTORY.map(s => s.timestamp),
+      datasets: [
+        { label:'pH',        data: SENSOR_HISTORY.map(s=>s.ph),           borderColor:'#2d9e57', tension:.4, pointRadius:2, backgroundColor:'transparent' },
+        { label:'Temp (Â°C)', data: SENSOR_HISTORY.map(s=>s.temperature),  borderColor:'#d97706', tension:.4, pointRadius:2, backgroundColor:'transparent' },
+        { label:'Humidity',  data: SENSOR_HISTORY.map(s=>s.humidity),     borderColor:'#2563eb', tension:.4, pointRadius:2, backgroundColor:'transparent' },
+        { label:'Moisture',  data: SENSOR_HISTORY.map(s=>s.soil_moisture),borderColor:'#0d9488', tension:.4, pointRadius:2, backgroundColor:'transparent' },
+        { label:'N (mg/kg)', data: SENSOR_HISTORY.map(s=>s.npk_nitrogen), borderColor:'#7c3aed', tension:.4, pointRadius:2, backgroundColor:'transparent' },
+      ]
+    },
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ position:'top', labels:{ boxWidth:10, padding:12 } } },
+      scales:{ x:{ grid:{ display:false }, ticks:{ maxTicksLimit:8 } }, y:{ grid:{ color:'#f1f5f9' } } }
+    }
+  });
 }
 
-/* ── Live polling ── */
+/* â”€â”€ Live polling â”€â”€ */
 function pollLive() {
   fetch(`/api/sessions/${SID}/live-data`)
-    .then(r=>r.json())
-    .then(d=>{
-      if(d.status!=='ok') return;
-      const s=d.latest_sensor, p=d.latest_prediction;
-      setV('m-ph',    s.ph        !=null ? (+s.ph).toFixed(1)       :'—');
-      setV('m-temp',  s.temperature!=null? (+s.temperature).toFixed(1):'—');
-      setV('m-hum',   s.humidity  !=null ? Math.round(s.humidity)   :'—');
-      setV('m-moist', s.soil_moisture!=null?Math.round(s.soil_moisture):'—');
-      setV('m-n',     s.npk_n     !=null ? Math.round(s.npk_n)      :'—');
-      setV('m-p',     s.npk_p     !=null ? Math.round(s.npk_p)      :'—');
-      setV('m-k',     s.npk_k     !=null ? Math.round(s.npk_k)      :'—');
-      if(p){
-        setV('stat-yield',  p.predicted_yield_per_acre!=null?Math.round(p.predicted_yield_per_acre)+' kg':'—');
-        setV('stat-acc',    p.model_accuracy!=null?(+p.model_accuracy).toFixed(1)+'%':'—');
-        setV('stage-badge', p.growth_stage||'—');
-        updateRing(p.health_score||0);
+    .then(r => r.json())
+    .then(d => {
+      if (d.status !== 'ok') return;
+      const s = d.latest_sensor, p = d.latest_prediction;
+      setV('m-ph',    s.ph         != null ? (+s.ph).toFixed(1)         : 'â€”');
+      setV('m-temp',  s.temperature!= null ? (+s.temperature).toFixed(1): 'â€”');
+      setV('m-hum',   s.humidity   != null ? Math.round(s.humidity)     : 'â€”');
+      setV('m-moist', s.soil_moisture!=null ? Math.round(s.soil_moisture): 'â€”');
+      setV('m-n',     s.npk_n      != null ? Math.round(s.npk_n)        : 'â€”');
+      setV('m-p',     s.npk_p      != null ? Math.round(s.npk_p)        : 'â€”');
+      setV('m-k',     s.npk_k      != null ? Math.round(s.npk_k)        : 'â€”');
+      if (p) {
+        setV('stat-yield',  p.predicted_yield_per_acre != null ? Math.round(p.predicted_yield_per_acre) + ' kg' : 'â€”');
+        setV('stat-acc',    p.model_accuracy != null ? (+p.model_accuracy).toFixed(1) + '%' : 'â€”');
+        setV('stage-badge', p.growth_stage || 'â€”');
+        updateRing(p.health_score || 0);
       }
-      document.getElementById('live-ind').style.display='inline-block';
-      document.getElementById('live-time').textContent=new Date().toLocaleTimeString();
-    }).catch(()=>{});
+      // Update image metrics if available
+      if (d.latest_image_metrics) {
+        const im = d.latest_image_metrics;
+        const row = document.getElementById('img-metrics-row');
+        if (row) row.style.display = 'block';
+        setV('m-greenness',  im.greenness_score        != null ? im.greenness_score.toFixed(1)        : 'â€”');
+        setV('m-leafcov',    im.leaf_coverage_percent  != null ? im.leaf_coverage_percent.toFixed(1)  : 'â€”');
+        setV('m-leafarea',   im.leaf_area_cm2          != null ? im.leaf_area_cm2.toFixed(1)          : 'â€”');
+        setV('m-actual-ht',  im.actual_height_cm       != null ? im.actual_height_cm.toFixed(1)       : 'â€”');
+        if (im.leaf_area_cm2 == null) {
+          const el = document.getElementById('m-leafarea');
+          if (el) { el.textContent = 'â€”'; el.closest('.metric-card').querySelector('.metric-sub').textContent = 'Set camera_frame_area_cm2'; }
+        }
+      }
+      document.getElementById('live-ind').style.display = 'inline-block';
+      document.getElementById('live-time').textContent = new Date().toLocaleTimeString();
+    }).catch(() => {});
 }
 
-function updateRing(score){
-  const circ=219.9, offset=circ-(score/100)*circ;
-  const ring=document.getElementById('health-ring');
-  if(!ring) return;
-  ring.style.strokeDashoffset=offset;
-  ring.style.stroke=score>=75?'var(--green-mid)':score>=50?'var(--amber)':'var(--red)';
-  setV('health-num',Math.round(score));
+function updateRing(score) {
+  const circ = 219.9, offset = circ - (score / 100) * circ;
+  const ring = document.getElementById('health-ring');
+  if (!ring) return;
+  ring.style.strokeDashoffset = offset;
+  ring.style.stroke = score >= 75 ? 'var(--green-mid)' : score >= 50 ? 'var(--amber)' : 'var(--red)';
+  setV('health-num', Math.round(score));
 }
-function setV(id,val){const el=document.getElementById(id);if(el)el.textContent=val;}
 
-/* ── Recommendations ── */
-function fetchRecs(targetId='rec-list-ov'){
+function setV(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+
+/* â”€â”€ Recommendations â”€â”€ */
+function fetchRecs(targetId = 'rec-list-ov') {
   fetch(`/api/sessions/${SID}/predict-growth`)
-    .then(r=>r.json())
-    .then(d=>renderRecs(d.recommendations||[],targetId))
-    .catch(()=>{});
+    .then(r => r.json())
+    .then(d => {
+      renderRecs(d.recommendations || [], targetId);
+      // Show image-enhanced badge if image features were used
+      if (d.image_features_used) {
+        const badge = document.getElementById('rec-img-note');
+        if (badge) badge.style.display = 'inline-flex';
+        const statHt = document.getElementById('stat-height');
+        if (statHt && d.predicted_height_cm) statHt.textContent = d.predicted_height_cm.toFixed(1) + ' cm';
+      }
+    })
+    .catch(() => {});
 }
-function refreshRecs(){ fetchRecs('rec-list-ov'); }
-function renderRecs(recs,targetId){
-  const el=document.getElementById(targetId);if(!el) return;
-  if(!recs.length){el.innerHTML='<div style="color:var(--text-3);font-size:.82rem">No recommendations.</div>';return;}
-  el.innerHTML=recs.map(r=>`
-    <div class="rec-item ${r.type==='ok'?'ok':''}">
+function refreshRecs() { fetchRecs('rec-list-ov'); }
+function renderRecs(recs, targetId) {
+  const el = document.getElementById(targetId); if (!el) return;
+  if (!recs.length) { el.innerHTML = '<div style="color:var(--text-3);font-size:.82rem">No recommendations.</div>'; return; }
+  el.innerHTML = recs.map(r => `
+    <div class="rec-item ${r.type === 'ok' ? 'ok' : ''}">
       <span class="rec-emoji">${r.icon}</span>
       <div class="rec-content">
         <div class="rec-issue">${r.issue}</div>
@@ -912,123 +1191,128 @@ function renderRecs(recs,targetId){
     </div>`).join('');
 }
 
-/* ── Upload ── */
-function detectSlot(){
-  const slot=new Date().getHours()<14?'Morning':'Evening';
-  const el=document.getElementById('slot-badge');
-  if(el){el.textContent='Slot: '+slot;el.className='badge '+(slot==='Morning'?'badge-blue':'badge-purple');}
+/* â”€â”€ Upload â”€â”€ */
+function detectSlot() {
+  const slot = new Date().getHours() < 14 ? 'Morning' : 'Evening';
+  const el = document.getElementById('slot-badge');
+  if (el) { el.textContent = 'Slot: ' + slot; el.className = 'badge ' + (slot === 'Morning' ? 'badge-blue' : 'badge-purple'); }
 }
-function previewUpload(inp){
-  if(!inp.files.length) return;
-  const img=document.getElementById('up-preview');
-  img.src=URL.createObjectURL(inp.files[0]);img.style.display='block';
+function previewUpload(inp) {
+  if (!inp.files.length) return;
+  const img = document.getElementById('up-preview');
+  img.src = URL.createObjectURL(inp.files[0]); img.style.display = 'block';
 }
-function uploadGrowthImage(){
-  const file=document.getElementById('up-file').files[0];
-  if(!file){toast('Select an image first.','err');return;}
-  const btn=document.getElementById('up-btn');
-  btn.innerHTML='<span class="spinner"></span> Uploading…';btn.disabled=true;
-  const slot=new Date().getHours()<14?'morning':'evening';
-  const fd=new FormData();
-  fd.append('image',file);
-  fd.append('slot',slot);
-  fd.append('notes',document.getElementById('up-notes').value);
-  fetch(`/api/sessions/${SID}/upload-image`,{method:'POST',body:fd})
-    .then(r=>r.json())
-    .then(d=>{
-      btn.innerHTML='📤 Submit Growth Image';btn.disabled=false;
-      if(d.error){toast(d.error,'err');return;}
+function uploadGrowthImage() {
+  const file = document.getElementById('up-file').files[0];
+  if (!file) { toast('Select an image first.', 'err'); return; }
+  const btn = document.getElementById('up-btn');
+  btn.innerHTML = '<span class="spinner"></span> Uploadingâ€¦'; btn.disabled = true;
+  const slot = new Date().getHours() < 14 ? 'morning' : 'evening';
+  const fd = new FormData();
+  fd.append('image', file);
+  fd.append('slot', slot);
+  fd.append('notes', document.getElementById('up-notes').value);
+  fetch(`/api/sessions/${SID}/upload-image`, { method: 'POST', body: fd })
+    .then(r => r.json())
+    .then(d => {
+      btn.innerHTML = 'ðŸ“¤ Submit Growth Image'; btn.disabled = false;
+      if (d.error) { toast(d.error, 'err'); return; }
       showUploadResult(d);
-      toast('Image submitted successfully!','ok');
+      // Rebuild charts with new data point
+      growthBuilt = false;
+      toast('Image submitted â€” charts updated!', 'ok');
     })
-    .catch(()=>{btn.innerHTML='📤 Submit Growth Image';btn.disabled=false;toast('Upload failed.','err');});
+    .catch(() => { btn.innerHTML = 'ðŸ“¤ Submit Growth Image'; btn.disabled = false; toast('Upload failed.', 'err'); });
 }
-function showUploadResult(d){
-  document.getElementById('up-placeholder').style.display='none';
-  const card=document.getElementById('up-result-card');
-  card.style.display='block';
-  const isHealthy=!d.disease_detected;
-  document.getElementById('up-result-header').style.background=isHealthy?'var(--green-pale)':'var(--red-light)';
-  document.getElementById('up-result-title').textContent=isHealthy?'✅ Plant looks healthy':'⚠️ Issue detected';
-  document.getElementById('up-result-body').innerHTML=`
+function showUploadResult(d) {
+  document.getElementById('up-placeholder').style.display = 'none';
+  const card = document.getElementById('up-result-card');
+  card.style.display = 'block';
+  const isHealthy = !d.disease_detected;
+  document.getElementById('up-result-header').style.background = isHealthy ? 'var(--green-pale)' : 'var(--red-light)';
+  document.getElementById('up-result-title').textContent = isHealthy ? 'âœ… Plant looks healthy' : 'âš ï¸ Issue detected';
+  document.getElementById('up-result-body').innerHTML = `
     <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:12px">
       <img src="${d.image_url}" style="width:90px;height:90px;object-fit:cover;border-radius:8px;border:1px solid var(--border)"/>
       <div style="flex:1;min-width:0">
         <div style="font-size:.85rem;font-weight:700;margin-bottom:6px">${d.disease_name}</div>
-        <div style="font-size:.77rem;color:var(--text-2);margin-bottom:4px">Confidence: <strong>${d.confidence}%</strong></div>
-        <div style="font-size:.77rem;color:var(--text-2);margin-bottom:4px">Greenness: <strong>${d.greenness_score}%</strong></div>
-        ${d.actual_height_cm?`<div style="font-size:.77rem;color:var(--text-2)">Est. Height: <strong>${d.actual_height_cm} cm</strong></div>`:''}
-        <div style="font-size:.77rem;color:var(--text-2)">Day ${d.day_number} — ${d.slot} slot</div>
+        <div style="font-size:.77rem;color:var(--text-2);margin-bottom:3px">Confidence: <strong>${d.confidence}%</strong></div>
+        <div style="font-size:.77rem;color:var(--text-2);margin-bottom:3px">Greenness: <strong>${d.greenness_score}%</strong>
+          &nbsp;|&nbsp; Leaf Coverage: <strong>${d.leaf_coverage_percent != null ? d.leaf_coverage_percent.toFixed(1) : 'â€”'}%</strong></div>
+        <div style="font-size:.77rem;color:var(--text-2);margin-bottom:3px">Pred. Height: <strong>${d.actual_height_cm != null ? d.actual_height_cm + ' cm' : 'â€”'}</strong>
+          &nbsp;|&nbsp; Health: <strong>${d.health_score != null ? d.health_score : 'â€”'}</strong></div>
+        <div style="font-size:.77rem;color:var(--text-2)">Stage: <strong>${d.growth_stage || 'â€”'}</strong> &nbsp;Â·&nbsp; Day ${d.day_number} â€” ${d.slot} slot</div>
+        <div style="font-size:.68rem;color:var(--green);margin-top:4px">ðŸ“· Image features used in ML prediction</div>
       </div>
     </div>
-    ${!isHealthy&&d.treatment?`
+    ${!isHealthy && d.treatment ? `
     <div style="background:var(--amber-light);border-left:3px solid var(--amber);border-radius:0 6px 6px 0;padding:10px 13px;font-size:.78rem;color:#92400e">
-      <strong>Treatment:</strong> ${d.treatment.pesticide||'—'}<br/>
-      <strong>Dose:</strong> ${d.treatment.dose||'—'} | <strong>Per acre:</strong> ${d.treatment.per_acre||'—'}<br/>
-      ${d.treatment.additional?`<em>${d.treatment.additional}</em>`:''}
-    </div>`:''}`;
+      <strong>Treatment:</strong> ${d.treatment.pesticide || 'â€”'}<br/>
+      <strong>Dose:</strong> ${d.treatment.dose || 'â€”'} | <strong>Per acre:</strong> ${d.treatment.per_acre || 'â€”'}<br/>
+      ${d.treatment.additional ? `<em>${d.treatment.additional}</em>` : ''}
+    </div>` : ''}`;
 }
 
-/* ── Notes ── */
-function addNote(){
-  const cat  =document.getElementById('note-cat').value;
-  const title=document.getElementById('note-title').value.trim();
-  const body =document.getElementById('note-body').value.trim();
-  if(!title){toast('Title is required.','err');return;}
-  fetch(`/api/sessions/${SID}/notes/add`,{
-    method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({category:cat,title,body})
+/* â”€â”€ Notes â”€â”€ */
+function addNote() {
+  const cat   = document.getElementById('note-cat').value;
+  const title = document.getElementById('note-title').value.trim();
+  const body  = document.getElementById('note-body').value.trim();
+  if (!title) { toast('Title is required.', 'err'); return; }
+  fetch(`/api/sessions/${SID}/notes/add`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ category: cat, title, body })
   })
-  .then(r=>r.json())
-  .then(d=>{
-    if(d.error){toast(d.error,'err');return;}
+  .then(r => r.json())
+  .then(d => {
+    if (d.error) { toast(d.error, 'err'); return; }
     closeModal('add-note-modal');
-    const n=d.note;
-    const list=document.getElementById('note-list');
-    const item=document.createElement('div');item.className='note-item';
-    item.innerHTML=`
+    const n = d.note;
+    const list = document.getElementById('note-list');
+    const item = document.createElement('div'); item.className = 'note-item';
+    item.innerHTML = `
       <div class="note-header">
         <span class="note-cat ${n.category}">${n.category.toUpperCase()}</span>
         <span class="note-date">${n.created_at}</span>
       </div>
       <div class="note-title">${n.title}</div>
-      ${n.body?`<div class="note-body">${n.body}</div>`:''}`;
-    list.insertBefore(item,list.firstChild);
-    document.getElementById('note-title').value='';
-    document.getElementById('note-body').value='';
-    toast('Note saved!','ok');
+      ${n.body ? `<div class="note-body">${n.body}</div>` : ''}`;
+    list.insertBefore(item, list.firstChild);
+    document.getElementById('note-title').value = '';
+    document.getElementById('note-body').value  = '';
+    toast('Note saved!', 'ok');
   });
 }
 
-/* ── Session actions ── */
-function closeSession(){
-  if(!confirm('Mark this session as completed?')) return;
-  fetch(`/api/sessions/${SID}/close`,{method:'POST'})
-    .then(r=>r.json()).then(()=>{ toast('Session marked complete.','ok'); setTimeout(()=>location.reload(),1000); });
+/* â”€â”€ Session actions â”€â”€ */
+function closeSession() {
+  if (!confirm('Mark this session as completed?')) return;
+  fetch(`/api/sessions/${SID}/close`, { method: 'POST' })
+    .then(r => r.json()).then(() => { toast('Session marked complete.', 'ok'); setTimeout(() => location.reload(), 1000); });
 }
-function confirmDelete(){
-  if(!confirm('Delete this session and all its data? This cannot be undone.')) return;
-  fetch(`/api/sessions/${SID}/delete`,{method:'POST'})
-    .then(r=>r.json()).then(()=>{ toast('Session deleted.','ok'); setTimeout(()=>window.location='/',1000); });
-}
-
-/* ── Initial health ring ── */
-function initRing(){
-  const score={% if latest_rec and latest_rec.health_score %}{{ latest_rec.health_score|floatformat:0 }}{% else %}0{% endif %};
-  if(score) updateRing(score);
+function confirmDelete() {
+  if (!confirm('Delete this session and all its data? This cannot be undone.')) return;
+  fetch(`/api/sessions/${SID}/delete`, { method: 'POST' })
+    .then(r => r.json()).then(() => { toast('Session deleted.', 'ok'); setTimeout(() => window.location = '/', 1000); });
 }
 
-/* ── Init ── */
-document.addEventListener('DOMContentLoaded',()=>{
+/* â”€â”€ Initial health ring â”€â”€ */
+function initRing() {
+  const score = {% if latest_rec and latest_rec.health_score %}{{ latest_rec.health_score|floatformat:0 }}{% else %}0{% endif %};
+  if (score) updateRing(score);
+}
+
+/* â”€â”€ Init â”€â”€ */
+document.addEventListener('DOMContentLoaded', () => {
   initRing();
   buildMiniChart();
   fetchRecs('rec-list-ov');
   detectSlot();
-  setupDrop('up-zone','up-file',previewUpload);
+  setupDrop('up-zone', 'up-file', previewUpload);
   pollLive();
-  setInterval(pollLive,5000);
-  setInterval(()=>fetchRecs('rec-list-ov'),30000);
-  document.getElementById('live-time').textContent=new Date().toLocaleTimeString();
+  setInterval(pollLive, 5000);
+  setInterval(() => fetchRecs('rec-list-ov'), 30000);
+  document.getElementById('live-time').textContent = new Date().toLocaleTimeString();
 });
 </script>
 {% endblock %}

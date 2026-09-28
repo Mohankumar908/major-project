@@ -12,7 +12,10 @@ from .models import (
     SensorData, GrowthPrediction, PlantImage,
     CropSession, DailyGrowthRecord, CropNote,
 )
-from .ml_utils import predict_growth, predict_disease, extract_greenness, extract_leaf_area
+from .ml_utils import (
+    predict_growth, predict_disease,
+    extract_greenness, extract_leaf_area, extract_image_features,
+)
 from .auto_retrain import maybe_trigger_retrain
 
 
@@ -26,9 +29,9 @@ CROP_ICONS = {
     'Cotton': '☁️',     'Other': '🌱',
 }
 
+
 def _session_summary(session):
-    """Return a serialisable dict for use in home page cards and the sessions API."""
-    latest_rec = (
+    latest_rec    = (
         session.growth_records
         .exclude(health_score__isnull=True)
         .order_by('-date', '-slot')
@@ -55,11 +58,11 @@ def _session_summary(session):
         'notes_count':   session.crop_notes.count(),
         'icon':          CROP_ICONS.get(session.crop_name, '🌱'),
         'latest_sensor': {
-            'ph':          latest_sensor.ph,
-            'temperature': latest_sensor.temperature,
-            'humidity':    latest_sensor.humidity,
+            'ph':            latest_sensor.ph,
+            'temperature':   latest_sensor.temperature,
+            'humidity':      latest_sensor.humidity,
             'soil_moisture': latest_sensor.soil_moisture,
-            'timestamp':   latest_sensor.timestamp.strftime('%Y-%m-%d %H:%M'),
+            'timestamp':     latest_sensor.timestamp.strftime('%Y-%m-%d %H:%M'),
         } if latest_sensor else None,
     }
 
@@ -81,18 +84,12 @@ def _ideal_curve(total_days=60):
 # ═══════════════════════════════════════════════════════════════════════════
 
 def home(request):
-    """Session list — the entry point of the app."""
     active_sessions    = CropSession.objects.filter(status='active').order_by('-created_at')
     completed_sessions = CropSession.objects.filter(status='completed').order_by('-created_at')
     paused_sessions    = CropSession.objects.filter(status='paused').order_by('-created_at')
-
-    # Stats for the top summary bar
-    total_active    = active_sessions.count()
-    total_completed = completed_sessions.count()
-    disease_alerts  = PlantImage.objects.filter(
-        processed=True, disease_detected=True
-    ).count()
-
+    total_active       = active_sessions.count()
+    total_completed    = completed_sessions.count()
+    disease_alerts     = PlantImage.objects.filter(processed=True, disease_detected=True).count()
     return render(request, 'agriculture/home.html', {
         'active_sessions':    active_sessions,
         'completed_sessions': completed_sessions,
@@ -105,10 +102,7 @@ def home(request):
 
 
 def session_detail(request, session_id):
-    """Per-crop monitoring page."""
-    session = get_object_or_404(CropSession, id=session_id)
-
-    # Latest sensor & prediction
+    session       = get_object_or_404(CropSession, id=session_id)
     latest_sensor = session.sensor_readings.order_by('-timestamp').first()
     latest_rec    = (
         session.growth_records
@@ -117,12 +111,10 @@ def session_detail(request, session_id):
         .first()
     )
 
-    # Chart data — per-day, pick latest slot
-    growth_records = (
-        session.growth_records
-        .order_by('day_number', 'slot')[:90]
-    )
+    # Chart bootstrap data (per-day, pick first slot seen)
+    growth_records = session.growth_records.order_by('day_number', 'slot')[:90]
     chart_days, actual_heights, pred_heights, pred_yields = [], [], [], []
+    actual_greenness, actual_leaf_cov = [], []
     seen = {}
     for r in growth_records:
         if r.day_number not in seen:
@@ -131,8 +123,10 @@ def session_detail(request, session_id):
             actual_heights.append(r.actual_height_cm)
             pred_heights.append(r.predicted_height_cm)
             pred_yields.append(r.predicted_yield_per_acre)
+            actual_greenness.append(r.actual_greenness_score)
+            actual_leaf_cov.append(r.actual_leaf_coverage_percent)
 
-    # Sensor history for sparkline (last 20)
+    # Sensor history sparkline (last 20, chronological)
     sensor_history = list(
         session.sensor_readings
         .values('timestamp', 'ph', 'temperature', 'humidity', 'soil_moisture', 'npk_nitrogen')
@@ -141,25 +135,15 @@ def session_detail(request, session_id):
     for s in sensor_history:
         s['timestamp'] = s['timestamp'].strftime('%H:%M')
 
-    # Today's upload status
     today        = date.today()
     morning_done = session.growth_records.filter(date=today, slot='morning', image_uploaded=True).exists()
     evening_done = session.growth_records.filter(date=today, slot='evening', image_uploaded=True).exists()
-
-    # Recent notes (latest 5)
     recent_notes = session.crop_notes.order_by('-created_at')[:5]
-
-    # Recent growth images linked to this session
     recent_images = (
         PlantImage.objects.filter(
-            dailygrowthrecord__session=session,
-            processed=True,
-        )
-        .distinct()
-        .order_by('-uploaded_at')[:8]
+            dailygrowthrecord__session=session, processed=True,
+        ).distinct().order_by('-uploaded_at')[:8]
     )
-
-    # Avg health over last 7 records
     avg_health = (
         session.growth_records
         .exclude(health_score__isnull=True)
@@ -177,21 +161,21 @@ def session_detail(request, session_id):
         'recent_images':        recent_images,
         'avg_health':           round(avg_health, 1) if avg_health else None,
         'icon':                 CROP_ICONS.get(session.crop_name, '🌱'),
-        # JSON for charts
         'sensor_history_json':  json.dumps(list(reversed(sensor_history))),
         'chart_days_json':      json.dumps(chart_days),
         'actual_heights_json':  json.dumps(actual_heights),
         'pred_heights_json':    json.dumps(pred_heights),
         'pred_yields_json':     json.dumps(pred_yields),
+        'actual_greenness_json': json.dumps(actual_greenness),
+        'actual_leaf_cov_json': json.dumps(actual_leaf_cov),
     })
 
 
 def disease_detection(request):
-    """Standalone disease detection page — no session required."""
-    recent = PlantImage.objects.filter(processed=True).order_by('-uploaded_at')[:20]
-    total_scans    = PlantImage.objects.filter(processed=True).count()
-    disease_found  = PlantImage.objects.filter(processed=True, disease_detected=True).count()
-    healthy_found  = PlantImage.objects.filter(processed=True, disease_detected=False).count()
+    recent       = PlantImage.objects.filter(processed=True).order_by('-uploaded_at')[:20]
+    total_scans  = PlantImage.objects.filter(processed=True).count()
+    disease_found = PlantImage.objects.filter(processed=True, disease_detected=True).count()
+    healthy_found = PlantImage.objects.filter(processed=True, disease_detected=False).count()
     return render(request, 'agriculture/disease_detection.html', {
         'recent_images': recent,
         'total_scans':   total_scans,
@@ -214,19 +198,19 @@ def api_sessions(request):
 @require_http_methods(["POST"])
 def api_create_session(request):
     try:
-        body = json.loads(request.body)
-        sowing = body.get('sowing_date') or date.today().isoformat()
+        body    = json.loads(request.body)
+        sowing  = body.get('sowing_date') or date.today().isoformat()
         session = CropSession.objects.create(
-            crop_name     = body.get('crop_name', 'Green Gram'),
-            crop_variety  = body.get('crop_variety', ''),
-            field_name    = body.get('field_name', ''),
-            field_acres   = float(body.get('field_acres', 1.0)),
-            farmer_name   = body.get('farmer_name', ''),
-            location      = body.get('location', ''),
-            sowing_date   = sowing,
+            crop_name        = body.get('crop_name', 'Green Gram'),
+            crop_variety     = body.get('crop_variety', ''),
+            field_name       = body.get('field_name', ''),
+            field_acres      = float(body.get('field_acres', 1.0)),
+            farmer_name      = body.get('farmer_name', ''),
+            location         = body.get('location', ''),
+            sowing_date      = sowing,
             expected_harvest = body.get('expected_harvest') or None,
-            notes         = body.get('notes', ''),
-            status        = 'active',
+            notes            = body.get('notes', ''),
+            status           = 'active',
         )
         return JsonResponse({'status': 'ok', 'session': _session_summary(session)})
     except Exception as e:
@@ -252,13 +236,13 @@ def api_delete_session(request, session_id):
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# GROWTH MONITORING APIs  (all scoped to a session)
+# GROWTH MONITORING APIs
 # ═══════════════════════════════════════════════════════════════════════════
 
 @csrf_exempt
 @require_http_methods(["POST"])
 def api_sensor_data(request, session_id):
-    """Receive IoT sensor payload and run growth prediction."""
+    """Receive IoT sensor payload and run growth prediction (sensor-only path)."""
     session = get_object_or_404(CropSession, id=session_id)
     try:
         body   = json.loads(request.body)
@@ -273,12 +257,21 @@ def api_sensor_data(request, session_id):
             soil_moisture  = body.get('soil_moisture') or body.get('moisture'),
             device_id      = body.get('device_id', 'ESP32_01'),
         )
+
+        # Sensor-only path: image features use neutral defaults inside predict_growth
         result = predict_growth(
-            sensor.ph or 6.5, sensor.npk_nitrogen or 60, sensor.npk_phosphorus or 30,
-            sensor.npk_potassium or 50, sensor.temperature or 27,
-            sensor.humidity or 65, sensor.soil_moisture or 45,
-            day_number=session.days_since_sowing, field_acres=session.field_acres,
+            ph          = sensor.ph           or 6.5,
+            nitrogen    = sensor.npk_nitrogen  or 60,
+            phosphorus  = sensor.npk_phosphorus or 30,
+            potassium   = sensor.npk_potassium  or 50,
+            temperature = sensor.temperature   or 27,
+            humidity    = sensor.humidity      or 65,
+            moisture    = sensor.soil_moisture  or 45,
+            day_number  = session.days_since_sowing,
+            field_acres = session.field_acres,
+            # No image features on the sensor-only path — predict_growth uses defaults
         )
+
         GrowthPrediction.objects.create(
             sensor_data              = sensor,
             predicted_yield_per_acre = result['predicted_yield_per_acre'],
@@ -287,6 +280,7 @@ def api_sensor_data(request, session_id):
             recommendation           = result['recommendation_text'],
             model_accuracy           = result['model_accuracy'],
         )
+
         today = date.today()
         slot  = 'morning' if timezone.now().hour < 14 else 'evening'
         record, created = DailyGrowthRecord.objects.get_or_create(
@@ -312,19 +306,19 @@ def api_sensor_data(request, session_id):
             record.sensor_data              = sensor
             record.save()
 
-        # Check if enough new real data has piled up to auto-retrain the
-        # growth model in the background (see auto_retrain.py).
         maybe_trigger_retrain()
 
         return JsonResponse({
-            'status':                 'ok',
-            'sensor_id':              sensor.id,
+            'status':                   'ok',
+            'sensor_id':                sensor.id,
             'predicted_yield_per_acre': result['predicted_yield_per_acre'],
-            'predicted_height_cm':    result['predicted_height_cm'],
-            'health_score':           result['health_score'],
-            'growth_stage':           result['growth_stage'],
-            'model_accuracy':         result['model_accuracy'],
-            'recommendations':        result['recommendations'],
+            'predicted_height_cm':      result['predicted_height_cm'],
+            'health_score':             result['health_score'],
+            'growth_stage':             result['growth_stage'],
+            'model_accuracy':           result['model_accuracy'],
+            'model_version':            result.get('model_version', '2.0'),
+            'image_features_used':      result.get('image_features_used', False),
+            'recommendations':          result['recommendations'],
         })
     except Exception as e:
         import traceback; traceback.print_exc()
@@ -333,7 +327,7 @@ def api_sensor_data(request, session_id):
 
 @require_http_methods(["GET"])
 def api_live_data(request, session_id):
-    """Live sensor + latest prediction for a session (polled every 5 s)."""
+    """Live sensor + latest prediction polled every 5 s."""
     session = get_object_or_404(CropSession, id=session_id)
     sensor  = session.sensor_readings.order_by('-timestamp').first()
     if not sensor:
@@ -349,25 +343,39 @@ def api_live_data(request, session_id):
     for h in history:
         h['timestamp'] = h['timestamp'].strftime('%Y-%m-%d %H:%M')
 
+    # Latest image metrics for the overview panel
+    latest_rec = (
+        session.growth_records
+        .exclude(actual_greenness_score__isnull=True)
+        .order_by('-date', '-slot')
+        .first()
+    )
+
     return JsonResponse({
         'status': 'ok',
         'latest_sensor': {
-            'ph':           sensor.ph,
-            'temperature':  sensor.temperature,
-            'humidity':     sensor.humidity,
+            'ph':            sensor.ph,
+            'temperature':   sensor.temperature,
+            'humidity':      sensor.humidity,
             'soil_moisture': sensor.soil_moisture,
-            'npk_n':        sensor.npk_nitrogen,
-            'npk_p':        sensor.npk_phosphorus,
-            'npk_k':        sensor.npk_potassium,
-            'device_id':    sensor.device_id,
-            'timestamp':    sensor.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+            'npk_n':         sensor.npk_nitrogen,
+            'npk_p':         sensor.npk_phosphorus,
+            'npk_k':         sensor.npk_potassium,
+            'device_id':     sensor.device_id,
+            'timestamp':     sensor.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
         },
         'latest_prediction': {
             'predicted_yield_per_acre': pred.predicted_yield_per_acre if pred else None,
-            'health_score':  pred.health_score  if pred else None,
-            'growth_stage':  pred.growth_stage  if pred else None,
-            'model_accuracy': pred.model_accuracy if pred else None,
+            'health_score':             pred.health_score  if pred else None,
+            'growth_stage':             pred.growth_stage  if pred else None,
+            'model_accuracy':           pred.model_accuracy if pred else None,
         } if pred else None,
+        'latest_image_metrics': {
+            'greenness_score':       latest_rec.actual_greenness_score,
+            'leaf_coverage_percent': latest_rec.actual_leaf_coverage_percent,
+            'leaf_area_cm2':         latest_rec.actual_leaf_area_cm2,
+            'actual_height_cm':      latest_rec.actual_height_cm,
+        } if latest_rec else None,
         'days_since_sowing': session.days_since_sowing,
         'history': list(reversed(history)),
     })
@@ -375,21 +383,34 @@ def api_live_data(request, session_id):
 
 @require_http_methods(["GET"])
 def api_predict_growth(request, session_id):
-    """On-demand growth prediction (can pass custom sensor values)."""
+    """On-demand growth prediction with optional sensor query params."""
     session = get_object_or_404(CropSession, id=session_id)
     try:
-        # Prefer values from query string; fall back to latest sensor reading
         latest = session.sensor_readings.order_by('-timestamp').first()
+
+        # Pull latest image features from the most recent record that has them
+        latest_img_rec = (
+            session.growth_records
+            .exclude(actual_greenness_score__isnull=True)
+            .order_by('-date', '-slot')
+            .first()
+        )
+
         result = predict_growth(
-            float(request.GET.get('ph',       latest.ph           if latest else 6.5)),
-            float(request.GET.get('n',        latest.npk_nitrogen  if latest else 60)),
-            float(request.GET.get('p',        latest.npk_phosphorus if latest else 30)),
-            float(request.GET.get('k',        latest.npk_potassium  if latest else 50)),
-            float(request.GET.get('temp',     latest.temperature   if latest else 27)),
-            float(request.GET.get('humidity', latest.humidity      if latest else 65)),
-            float(request.GET.get('moisture', latest.soil_moisture if latest else 45)),
+            ph          = float(request.GET.get('ph',       latest.ph            if latest else 6.5)),
+            nitrogen    = float(request.GET.get('n',        latest.npk_nitrogen   if latest else 60)),
+            phosphorus  = float(request.GET.get('p',        latest.npk_phosphorus if latest else 30)),
+            potassium   = float(request.GET.get('k',        latest.npk_potassium  if latest else 50)),
+            temperature = float(request.GET.get('temp',     latest.temperature    if latest else 27)),
+            humidity    = float(request.GET.get('humidity', latest.humidity       if latest else 65)),
+            moisture    = float(request.GET.get('moisture', latest.soil_moisture  if latest else 45)),
             day_number  = session.days_since_sowing,
             field_acres = session.field_acres,
+            # Use cached image features from the latest growth record that has them
+            greenness_score       = latest_img_rec.actual_greenness_score       if latest_img_rec else None,
+            leaf_coverage_percent = latest_img_rec.actual_leaf_coverage_percent if latest_img_rec else None,
+            leaf_area_norm        = (latest_img_rec.actual_leaf_coverage_percent / 100.0)
+                                    if latest_img_rec and latest_img_rec.actual_leaf_coverage_percent else None,
         )
         return JsonResponse(result)
     except Exception as e:
@@ -398,23 +419,46 @@ def api_predict_growth(request, session_id):
 
 @require_http_methods(["GET"])
 def api_growth_chart(request, session_id):
-    """Chart data: actual vs predicted vs ideal curve."""
+    """
+    Chart data: actual vs predicted vs ideal for height, yield,
+    health, greenness, and leaf coverage.
+    """
     session = get_object_or_404(CropSession, id=session_id)
     records = session.growth_records.order_by('day_number', 'slot')
 
-    seen, days, actual, predicted, yields, health_trend, greenness_trend = {}, [], [], [], [], [], []
-    leaf_coverage_trend, leaf_area_trend = [], []
+    seen = {}
+    days               = []
+    actual_heights     = []
+    predicted_heights  = []
+    predicted_yields   = []
+    actual_yields      = []   # will be None until harvest yield is logged
+    health_trend       = []
+    greenness_actual   = []
+    greenness_predicted = []  # derived from day progression for comparison
+    leaf_coverage_trend = []
+    leaf_area_trend    = []
+
     for r in records:
-        if r.day_number not in seen:
-            seen[r.day_number] = True
-            days.append(r.day_number)
-            actual.append(r.actual_height_cm)
-            predicted.append(r.predicted_height_cm)
-            yields.append(r.predicted_yield_per_acre)
-            health_trend.append(r.health_score)
-            greenness_trend.append(r.actual_greenness_score)
-            leaf_coverage_trend.append(r.actual_leaf_coverage_percent)
-            leaf_area_trend.append(r.actual_leaf_area_cm2)
+        if r.day_number in seen:
+            continue
+        seen[r.day_number] = True
+        days.append(r.day_number)
+        actual_heights.append(r.actual_height_cm)
+        predicted_heights.append(r.predicted_height_cm)
+        predicted_yields.append(r.predicted_yield_per_acre)
+        health_trend.append(r.health_score)
+        greenness_actual.append(r.actual_greenness_score)
+        leaf_coverage_trend.append(r.actual_leaf_coverage_percent)
+        leaf_area_trend.append(r.actual_leaf_area_cm2)
+
+        # Predicted greenness: bell-curve proxy from day_number
+        # mirrors the synthetic dataset formula for comparison
+        import math as _math
+        pred_gs = round(
+            20 + 65 * _math.exp(-0.5 * ((r.day_number - 30) / 18) ** 2),
+            1
+        )
+        greenness_predicted.append(pred_gs)
 
     total_days = 60
     if session.expected_harvest:
@@ -422,28 +466,49 @@ def api_growth_chart(request, session_id):
 
     ideal_days, ideal_heights, ideal_yields = _ideal_curve(total_days)
 
+    # Summary statistics for the chart panel
+    recorded_actual_heights = [h for h in actual_heights if h is not None]
+    recorded_pred_heights   = [h for h in predicted_heights if h is not None]
+
     return JsonResponse({
-        'days':             days,
-        'actual_heights':   actual,
-        'predicted_heights': predicted,
-        'predicted_yields': yields,
-        'health_trend':     health_trend,
-        'greenness_trend':  greenness_trend,
-        'leaf_coverage_trend': leaf_coverage_trend,
-        'leaf_area_trend':  leaf_area_trend,
-        'ideal_days':       ideal_days,
-        'ideal_heights':    ideal_heights,
-        'ideal_yields':     ideal_yields,
-        'crop':             session.crop_name,
-        'field_acres':      session.field_acres,
-        'total_days':       total_days,
+        'days':                  days,
+        # Height
+        'actual_heights':        actual_heights,
+        'predicted_heights':     predicted_heights,
+        # Yield
+        'predicted_yields':      predicted_yields,
+        # Health
+        'health_trend':          health_trend,
+        # Greenness — actual (camera) vs predicted (model baseline)
+        'greenness_actual':      greenness_actual,
+        'greenness_predicted':   greenness_predicted,
+        # Leaf coverage
+        'leaf_coverage_trend':   leaf_coverage_trend,
+        'leaf_area_trend':       leaf_area_trend,
+        # Ideal baselines
+        'ideal_days':            ideal_days,
+        'ideal_heights':         ideal_heights,
+        'ideal_yields':          ideal_yields,
+        # Meta
+        'crop':                  session.crop_name,
+        'field_acres':           session.field_acres,
+        'total_days':            total_days,
+        'has_image_data':        any(g is not None for g in greenness_actual),
+        'mean_actual_height':    round(sum(recorded_actual_heights) / len(recorded_actual_heights), 1)
+                                 if recorded_actual_heights else None,
+        'mean_pred_height':      round(sum(recorded_pred_heights) / len(recorded_pred_heights), 1)
+                                 if recorded_pred_heights else None,
     })
 
 
 @csrf_exempt
 @require_http_methods(["POST"])
 def api_upload_growth_image(request, session_id):
-    """Upload a plant image for a session's daily growth record."""
+    """
+    Upload a plant image for daily growth monitoring.
+    Extracts greenness + leaf area features and feeds them back into
+    predict_growth() so the ML prediction is image-aware.
+    """
     session = get_object_or_404(CropSession, id=session_id)
     try:
         image_file = request.FILES.get('image')
@@ -452,57 +517,90 @@ def api_upload_growth_image(request, session_id):
 
         slot = request.POST.get('slot', 'morning' if timezone.now().hour < 14 else 'evening')
 
-        # Save image; run disease detection alongside greenness
+        # Save image
         plant_img = PlantImage.objects.create(
             image       = image_file,
             farmer_name = session.farmer_name,
             location    = session.location,
             notes       = request.POST.get('notes', ''),
         )
-        diseased, disease_name, confidence, model_acc, treatment, low_confidence = predict_disease(plant_img.image.path)
-        greenness = extract_greenness(plant_img.image.path)
-        leaf_coverage_percent, leaf_area_cm2 = extract_leaf_area(
-            plant_img.image.path, frame_area_cm2=session.camera_frame_area_cm2
+
+        # ── Extract all image features in one call ──────────────────────────
+        img_feats = extract_image_features(
+            plant_img.image.path,
+            frame_area_cm2=session.camera_frame_area_cm2,
+        )
+        greenness             = img_feats['greenness_score']
+        leaf_coverage_percent = img_feats['leaf_coverage_percent']
+        leaf_area_norm        = img_feats['leaf_area_norm']
+        leaf_area_cm2         = img_feats['leaf_area_cm2']
+
+        # ── Disease detection ───────────────────────────────────────────────
+        diseased, disease_name, confidence, model_acc, treatment, low_confidence = \
+            predict_disease(plant_img.image.path)
+
+        # ── Growth prediction with image features ───────────────────────────
+        latest_sensor = session.sensor_readings.order_by('-timestamp').first()
+        growth_result = predict_growth(
+            ph          = latest_sensor.ph            if latest_sensor else 6.5,
+            nitrogen    = latest_sensor.npk_nitrogen   if latest_sensor else 60,
+            phosphorus  = latest_sensor.npk_phosphorus if latest_sensor else 30,
+            potassium   = latest_sensor.npk_potassium  if latest_sensor else 50,
+            temperature = latest_sensor.temperature    if latest_sensor else 27,
+            humidity    = latest_sensor.humidity       if latest_sensor else 65,
+            moisture    = latest_sensor.soil_moisture  if latest_sensor else 45,
+            day_number  = session.days_since_sowing,
+            field_acres = session.field_acres,
+            # Image features fed into the model
+            greenness_score       = greenness,
+            leaf_coverage_percent = leaf_coverage_percent,
+            leaf_area_norm        = leaf_area_norm,
         )
 
-        plant_img.disease_detected = diseased
-        plant_img.disease_name     = disease_name
-        plant_img.confidence       = confidence
-        plant_img.model_accuracy   = model_acc
-        plant_img.low_confidence   = low_confidence
-        plant_img.processed        = True
-        plant_img.greenness_score  = greenness
+        # ── Save to PlantImage ──────────────────────────────────────────────
+        plant_img.disease_detected      = diseased
+        plant_img.disease_name          = disease_name
+        plant_img.confidence            = confidence
+        plant_img.model_accuracy        = model_acc
+        plant_img.low_confidence        = low_confidence
+        plant_img.processed             = True
+        plant_img.greenness_score       = greenness
         plant_img.leaf_coverage_percent = leaf_coverage_percent
         plant_img.leaf_area_cm2         = leaf_area_cm2
         plant_img.save()
 
-        # Upsert today's growth record
+        # ── Upsert DailyGrowthRecord ────────────────────────────────────────
         today  = date.today()
         record, _ = DailyGrowthRecord.objects.get_or_create(
             session=session, date=today, slot=slot,
             defaults={'day_number': session.days_since_sowing},
         )
-        record.image                 = plant_img
-        record.image_uploaded        = True
-        record.actual_greenness_score = greenness
+        record.image                        = plant_img
+        record.image_uploaded               = True
+        record.actual_greenness_score       = greenness
         record.actual_leaf_coverage_percent = leaf_coverage_percent
         record.actual_leaf_area_cm2         = leaf_area_cm2
-        if record.day_number:
-            record.actual_height_cm = round(
-                10 + 70 * (1 / (1 + 2.718 ** (-0.05 * (record.day_number - 60))))
-                * (greenness / 100) * 1.3, 1
-            )
-        # Attach disease info to growth context
+
+        # Actual height: image-informed ML prediction (better than old heuristic)
+        record.actual_height_cm = growth_result['predicted_height_cm']
+
+        # Update ML-predicted fields with the image-enriched prediction
+        record.predicted_height_cm      = growth_result['predicted_height_cm']
+        record.predicted_yield_per_acre = growth_result['predicted_yield_per_acre']
+        record.health_score             = growth_result['health_score']
+        record.growth_stage             = growth_result['growth_stage']
+        record.model_accuracy           = growth_result['model_accuracy']
+
+        rec_text = growth_result['recommendation_text']
         if diseased:
-            record.recommendation = (record.recommendation + ' | ' if record.recommendation else '') + \
+            rec_text = (rec_text + ' | ' if rec_text else '') + \
                 f'Disease detected: {disease_name}'
+        record.recommendation = rec_text
         record.save()
 
-        # Check if enough new real data has piled up to auto-retrain the
-        # growth model in the background (see auto_retrain.py).
         maybe_trigger_retrain()
 
-        # Auto-create an alert note if disease detected
+        # Auto-create alert note on disease
         if diseased:
             CropNote.objects.create(
                 session  = session,
@@ -513,21 +611,27 @@ def api_upload_growth_image(request, session_id):
             )
 
         return JsonResponse({
-            'status':           'ok',
-            'image_id':         plant_img.id,
-            'image_url':        plant_img.image.url,
-            'disease_detected': diseased,
-            'disease_name':     disease_name,
-            'confidence':       confidence,
-            'model_accuracy':   model_acc,
-            'low_confidence':   low_confidence,
-            'greenness_score':  greenness,
-            'leaf_coverage_percent': leaf_coverage_percent,
-            'leaf_area_cm2':    leaf_area_cm2,
-            'actual_height_cm': record.actual_height_cm,
-            'day_number':       record.day_number,
-            'slot':             slot,
-            'treatment':        treatment,
+            'status':                   'ok',
+            'image_id':                 plant_img.id,
+            'image_url':                plant_img.image.url,
+            'disease_detected':         diseased,
+            'disease_name':             disease_name,
+            'confidence':               confidence,
+            'model_accuracy':           model_acc,
+            'low_confidence':           low_confidence,
+            'greenness_score':          greenness,
+            'leaf_coverage_percent':    leaf_coverage_percent,
+            'leaf_area_cm2':            leaf_area_cm2,
+            'actual_height_cm':         record.actual_height_cm,
+            'predicted_yield_per_acre': growth_result['predicted_yield_per_acre'],
+            'health_score':             growth_result['health_score'],
+            'growth_stage':             growth_result['growth_stage'],
+            'model_version':            growth_result.get('model_version', '2.0'),
+            'image_features_used':      True,
+            'day_number':               record.day_number,
+            'slot':                     slot,
+            'treatment':                treatment,
+            'recommendations':          growth_result['recommendations'],
         })
     except Exception as e:
         import traceback; traceback.print_exc()
@@ -575,13 +679,12 @@ def api_add_note(request, session_id):
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# DISEASE DETECTION APIs  (standalone)
+# DISEASE DETECTION APIs (standalone)
 # ═══════════════════════════════════════════════════════════════════════════
 
 @csrf_exempt
 @require_http_methods(["POST"])
 def api_disease_analyse(request):
-    """Analyse a plant image — no session required."""
     try:
         image_file = request.FILES.get('image')
         if not image_file:
@@ -594,34 +697,38 @@ def api_disease_analyse(request):
             notes       = request.POST.get('notes', ''),
         )
 
-        diseased, disease_name, confidence, model_acc, treatment, low_confidence = predict_disease(plant_img.image.path)
-        greenness = extract_greenness(plant_img.image.path)
-        leaf_coverage_percent, leaf_area_cm2 = extract_leaf_area(plant_img.image.path)
+        diseased, disease_name, confidence, model_acc, treatment, low_confidence = \
+            predict_disease(plant_img.image.path)
 
-        plant_img.disease_detected = diseased
-        plant_img.disease_name     = disease_name
-        plant_img.confidence       = confidence
-        plant_img.model_accuracy   = model_acc
-        plant_img.low_confidence   = low_confidence
-        plant_img.processed        = True
-        plant_img.greenness_score  = greenness
+        img_feats = extract_image_features(plant_img.image.path)
+        greenness             = img_feats['greenness_score']
+        leaf_coverage_percent = img_feats['leaf_coverage_percent']
+        leaf_area_cm2         = img_feats['leaf_area_cm2']
+
+        plant_img.disease_detected      = diseased
+        plant_img.disease_name          = disease_name
+        plant_img.confidence            = confidence
+        plant_img.model_accuracy        = model_acc
+        plant_img.low_confidence        = low_confidence
+        plant_img.processed             = True
+        plant_img.greenness_score       = greenness
         plant_img.leaf_coverage_percent = leaf_coverage_percent
         plant_img.leaf_area_cm2         = leaf_area_cm2
         plant_img.save()
 
         return JsonResponse({
-            'status':           'ok',
-            'image_id':         plant_img.id,
-            'image_url':        plant_img.image.url,
-            'disease_detected': diseased,
-            'disease_name':     disease_name,
-            'confidence':       confidence,
-            'model_accuracy':   model_acc,
-            'low_confidence':   low_confidence,
-            'greenness_score':  greenness,
+            'status':                'ok',
+            'image_id':              plant_img.id,
+            'image_url':             plant_img.image.url,
+            'disease_detected':      diseased,
+            'disease_name':          disease_name,
+            'confidence':            confidence,
+            'model_accuracy':        model_acc,
+            'low_confidence':        low_confidence,
+            'greenness_score':       greenness,
             'leaf_coverage_percent': leaf_coverage_percent,
-            'leaf_area_cm2':    leaf_area_cm2,
-            'treatment':        treatment,
+            'leaf_area_cm2':         leaf_area_cm2,
+            'treatment':             treatment,
         })
     except Exception as e:
         import traceback; traceback.print_exc()
@@ -630,7 +737,6 @@ def api_disease_analyse(request):
 
 @require_http_methods(["GET"])
 def api_disease_history(request):
-    """Paginated disease scan history."""
     page     = int(request.GET.get('page', 1))
     per_page = 20
     qs       = PlantImage.objects.filter(processed=True).order_by('-uploaded_at')
@@ -640,39 +746,33 @@ def api_disease_history(request):
         'total': total,
         'page':  page,
         'images': [{
-            'id':               img.id,
-            'url':              img.image.url,
-            'disease_detected': img.disease_detected,
-            'disease_name':     img.disease_name,
-            'confidence':       img.confidence,
-            'model_accuracy':   img.model_accuracy,
-            'low_confidence':   img.low_confidence,
-            'greenness_score':  img.greenness_score,
+            'id':                    img.id,
+            'url':                   img.image.url,
+            'disease_detected':      img.disease_detected,
+            'disease_name':          img.disease_name,
+            'confidence':            img.confidence,
+            'model_accuracy':        img.model_accuracy,
+            'low_confidence':        img.low_confidence,
+            'greenness_score':       img.greenness_score,
             'leaf_coverage_percent': img.leaf_coverage_percent,
-            'leaf_area_cm2':    img.leaf_area_cm2,
-            'farmer_name':      img.farmer_name,
-            'location':         img.location,
-            'uploaded_at':      img.uploaded_at.strftime('%d %b %Y, %H:%M'),
+            'leaf_area_cm2':         img.leaf_area_cm2,
+            'farmer_name':           img.farmer_name,
+            'location':              img.location,
+            'uploaded_at':           img.uploaded_at.strftime('%d %b %Y, %H:%M'),
         } for img in images],
     })
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# LEGACY  (keeps existing ESP32 firmware working with old URL)
+# LEGACY (keeps existing ESP32 firmware working with old URL)
 # ═══════════════════════════════════════════════════════════════════════════
 
 @csrf_exempt
 @require_http_methods(["POST"])
 def api_sensor_data_legacy(request):
-    """
-    Old endpoint: POST /api/sensor-data
-    Routes to the active session (or first active one).
-    """
     active = CropSession.objects.filter(status='active').order_by('-created_at').first()
     if not active:
         active = CropSession.objects.create(
             crop_name='Green Gram', field_acres=1.0, sowing_date=date.today()
         )
-    # Reuse the session-scoped handler by temporarily patching the URL kwarg
-    request.resolver_match = type('M', (), {'kwargs': {'session_id': active.id}})()
     return api_sensor_data(request, session_id=active.id)
