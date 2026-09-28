@@ -199,7 +199,20 @@ def api_sessions(request):
 def api_create_session(request):
     try:
         body    = json.loads(request.body)
-        sowing  = body.get('sowing_date') or date.today().isoformat()
+        sowing_raw = body.get('sowing_date') or date.today().isoformat()
+        # Parse string → date object so days_since_sowing arithmetic works
+        from datetime import datetime as _dt
+        if isinstance(sowing_raw, str):
+            sowing = _dt.strptime(sowing_raw[:10], '%Y-%m-%d').date()
+        else:
+            sowing = sowing_raw
+
+        harvest_raw = body.get('expected_harvest') or None
+        if isinstance(harvest_raw, str) and harvest_raw:
+            harvest = _dt.strptime(harvest_raw[:10], '%Y-%m-%d').date()
+        else:
+            harvest = None
+
         session = CropSession.objects.create(
             crop_name        = body.get('crop_name', 'Green Gram'),
             crop_variety     = body.get('crop_variety', ''),
@@ -208,7 +221,7 @@ def api_create_session(request):
             farmer_name      = body.get('farmer_name', ''),
             location         = body.get('location', ''),
             sowing_date      = sowing,
-            expected_harvest = body.get('expected_harvest') or None,
+            expected_harvest = harvest,
             notes            = body.get('notes', ''),
             status           = 'active',
         )

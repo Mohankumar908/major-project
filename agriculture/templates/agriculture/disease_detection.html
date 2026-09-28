@@ -1,154 +1,94 @@
 {% extends "agriculture/base.html" %}
-{% block title %}Disease Detection — Smart Agriculture{% endblock %}
+{% block title %}Disease Detection - Smart Agriculture{% endblock %}
 {% block nav_disease %}active{% endblock %}
 
 {% block extra_head %}
 <style>
-/* ── Page layout ── */
-.dd-page { max-width: 1200px; margin: 0 auto; padding: 28px 24px; }
+.dd-page{max-width:1200px;margin:0 auto;padding:28px 24px}
 
-/* ── Stats strip ── */
-.dd-stats {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px;
-}
-.dd-stat {
-  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r);
-  padding: 16px 20px; box-shadow: var(--shadow-sm);
-  display: flex; align-items: center; gap: 14px;
-}
-.dd-stat-icon {
-  width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
-}
-.dd-stat-label { font-size: .7rem; color: var(--text-3); font-weight: 500; text-transform: uppercase; letter-spacing: .05em; }
-.dd-stat-value { font-size: 1.65rem; font-weight: 700; color: var(--text); line-height: 1; margin-top: 3px; }
+.dd-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+.dd-stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;box-shadow:var(--shadow-sm);display:flex;align-items:center;gap:14px}
+.dd-stat-icon{width:44px;height:44px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.1rem}
+.dd-stat-label{font-size:.7rem;color:var(--text-3);font-weight:500;text-transform:uppercase;letter-spacing:.05em}
+.dd-stat-value{font-size:1.65rem;font-weight:700;color:var(--text);line-height:1;margin-top:3px}
 
-/* ── Main two-column ── */
-.dd-grid { display: grid; grid-template-columns: 420px 1fr; gap: 22px; align-items: start; margin-bottom: 28px; }
+.dd-grid{display:grid;grid-template-columns:420px 1fr;gap:22px;align-items:start;margin-bottom:28px}
 
-/* ── Upload card ── */
-.drop-area {
-  border: 2px dashed var(--border); border-radius: var(--r); padding: 32px 20px;
-  text-align: center; cursor: pointer; background: var(--surface-alt); transition: all .2s;
-}
-.drop-area:hover, .drop-area.drag { border-color: var(--green-mid); background: var(--green-pale); }
-.drop-icon { font-size: 2.4rem; margin-bottom: 10px; }
-.drop-text { font-size: .88rem; font-weight: 500; color: var(--text-2); }
-.drop-hint { font-size: .74rem; color: var(--text-3); margin-top: 4px; }
-.preview-wrap { margin-top: 14px; display: none; }
-.preview-wrap img { width: 100%; max-height: 220px; object-fit: cover; border-radius: var(--r-sm); border: 1px solid var(--border); }
+.drop-area{border:2px dashed var(--border);border-radius:var(--r);padding:32px 20px;text-align:center;cursor:pointer;background:var(--surface-alt);transition:all .2s}
+.drop-area:hover,.drop-area.drag{border-color:var(--green-mid);background:var(--green-pale)}
+.drop-icon{font-size:2rem;margin-bottom:10px;color:var(--green-mid)}
+.drop-text{font-size:.88rem;font-weight:500;color:var(--text-2)}
+.drop-hint{font-size:.74rem;color:var(--text-3);margin-top:4px}
+.preview-wrap{margin-top:14px;display:none}
+.preview-wrap img{width:100%;max-height:220px;object-fit:cover;border-radius:var(--r-sm);border:1px solid var(--border)}
 
-/* ── Result panel ── */
-.result-card { display: none; }
-.result-card.show { display: block; }
-.result-header {
-  padding: 16px 20px; border-radius: var(--r) var(--r) 0 0;
-  display: flex; align-items: center; gap: 14px;
-}
-.result-header.healthy { background: var(--green-pale); border: 1px solid #a7d7b5; border-bottom: none; }
-.result-header.disease { background: var(--red-light);  border: 1px solid #fca5a5; border-bottom: none; }
-.result-emoji { font-size: 2rem; }
-.result-name  { font-size: 1rem; font-weight: 700; color: var(--text); }
-.result-sub   { font-size: .76rem; color: var(--text-2); margin-top: 2px; }
-.result-body  {
-  padding: 18px 20px;
-  border: 1px solid var(--border); border-top: none;
-  border-radius: 0 0 var(--r) var(--r);
-  background: var(--surface);
-}
+.result-card{display:none}
+.result-card.show{display:block}
+.result-header{padding:16px 20px;border-radius:var(--r) var(--r) 0 0;display:flex;align-items:center;gap:14px}
+.result-header.healthy{background:var(--green-pale);border:1px solid #a7d7b5;border-bottom:none}
+.result-header.disease{background:var(--red-light);border:1px solid #fca5a5;border-bottom:none}
+.result-icon{font-size:1.6rem}
+.result-name{font-size:1rem;font-weight:700;color:var(--text)}
+.result-sub{font-size:.76rem;color:var(--text-2);margin-top:2px}
+.result-body{padding:18px 20px;border:1px solid var(--border);border-top:none;border-radius:0 0 var(--r) var(--r);background:var(--surface)}
 
-/* ── Confidence bars ── */
-.conf-row { margin-bottom: 10px; }
-.conf-label { display: flex; justify-content: space-between; font-size: .74rem; color: var(--text-2); margin-bottom: 4px; }
-.conf-track { background: var(--border); border-radius: 4px; height: 7px; overflow: hidden; }
-.conf-fill  { height: 100%; border-radius: 4px; transition: width .7s ease; }
+.conf-row{margin-bottom:10px}
+.conf-label{display:flex;justify-content:space-between;font-size:.74rem;color:var(--text-2);margin-bottom:4px}
+.conf-track{background:var(--border);border-radius:4px;height:7px;overflow:hidden}
+.conf-fill{height:100%;border-radius:4px;transition:width .7s ease}
 
-/* ── Treatment grid ── */
-.treatment-section { margin-top: 16px; }
-.treatment-section-title { font-size: .72rem; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 10px; }
-.treatment-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.treatment-item {
-  background: var(--surface-alt); border: 1px solid var(--border);
-  border-radius: var(--r-sm); padding: 10px 12px;
-}
-.treatment-label { font-size: .66rem; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
-.treatment-value { font-size: .8rem; font-weight: 500; color: var(--text); }
-.treatment-note {
-  margin-top: 10px; padding: 10px 13px;
-  background: var(--amber-light); border-left: 3px solid var(--amber);
-  border-radius: 0 var(--r-sm) var(--r-sm) 0; font-size: .78rem; color: #92400e;
-}
+.treatment-section{margin-top:16px}
+.treatment-section-title{font-size:.72rem;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+.treatment-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.treatment-item{background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 12px}
+.treatment-label{font-size:.66rem;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.treatment-value{font-size:.8rem;font-weight:500;color:var(--text)}
+.treatment-note{margin-top:10px;padding:10px 13px;background:var(--amber-light);border-left:3px solid var(--amber);border-radius:0 var(--r-sm) var(--r-sm) 0;font-size:.78rem;color:#92400e}
 
-/* ── Placeholder ── */
-.result-placeholder {
-  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r);
-  padding: 48px 20px; text-align: center; color: var(--text-3);
-}
-.result-placeholder-icon { font-size: 3rem; margin-bottom: 12px; }
-.result-placeholder-title { font-size: .95rem; font-weight: 600; color: var(--text-2); margin-bottom: 5px; }
-.result-placeholder-sub   { font-size: .78rem; }
+.result-placeholder{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:48px 20px;text-align:center;color:var(--text-3)}
+.result-placeholder-icon{font-size:2.5rem;margin-bottom:12px;color:var(--text-3)}
+.result-placeholder-title{font-size:.95rem;font-weight:600;color:var(--text-2);margin-bottom:5px}
+.result-placeholder-sub{font-size:.78rem}
 
-/* ── History section ── */
-.history-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-.history-grid   { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; margin-bottom: 22px; }
-.hist-card {
-  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r);
-  overflow: hidden; box-shadow: var(--shadow-sm); transition: box-shadow .2s, transform .15s; cursor: pointer;
-}
-.hist-card:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
-.hist-card img   { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; }
-.hist-card-info  { padding: 8px 10px; }
-.hist-card-name  { font-size: .75rem; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.hist-card-meta  { font-size: .67rem; color: var(--text-3); margin-top: 2px; }
-.hist-card-conf  { display: flex; align-items: center; justify-content: space-between; margin-top: 5px; }
+.history-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.history-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;margin-bottom:22px}
+.hist-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow-sm);transition:box-shadow .2s,transform .15s;cursor:pointer}
+.hist-card:hover{box-shadow:var(--shadow);transform:translateY(-2px)}
+.hist-card img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+.hist-card-info{padding:8px 10px}
+.hist-card-name{font-size:.75rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hist-card-meta{font-size:.67rem;color:var(--text-3);margin-top:2px}
+.hist-card-conf{display:flex;align-items:center;justify-content:space-between;margin-top:5px}
 
-/* ── History table ── */
-.tbl-wrap { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; font-size: .79rem; }
-thead th {
-  background: var(--surface-alt); color: var(--text-2); font-weight: 600;
-  font-size: .7rem; text-transform: uppercase; letter-spacing: .04em;
-  padding: 9px 13px; text-align: left; border-bottom: 1px solid var(--border);
-}
-tbody tr { border-bottom: 1px solid var(--border-soft); }
-tbody tr:hover { background: var(--surface-alt); }
-tbody td { padding: 9px 13px; color: var(--text); }
-.td-muted { color: var(--text-3); }
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.79rem}
+thead th{background:var(--surface-alt);color:var(--text-2);font-weight:600;font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;padding:9px 13px;text-align:left;border-bottom:1px solid var(--border)}
+tbody tr{border-bottom:1px solid var(--border-soft)}
+tbody tr:hover{background:var(--surface-alt)}
+tbody td{padding:9px 13px;color:var(--text)}
+.td-muted{color:var(--text-3)}
 
-/* ── Pagination ── */
-.pagination { display: flex; justify-content: center; gap: 8px; margin-top: 16px; }
-.page-btn {
-  padding: 6px 14px; border-radius: var(--r-sm); font-size: .8rem;
-  font-weight: 500; cursor: pointer; border: 1px solid var(--border);
-  background: var(--surface); color: var(--text-2); transition: all .15s;
-}
-.page-btn:hover  { background: var(--surface-alt); }
-.page-btn.active { background: var(--green); border-color: var(--green); color: #fff; }
-.page-btn:disabled { opacity: .4; cursor: not-allowed; }
+.pagination{display:flex;justify-content:center;gap:8px;margin-top:16px}
+.page-btn{padding:6px 14px;border-radius:var(--r-sm);font-size:.8rem;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text-2);transition:all .15s}
+.page-btn:hover{background:var(--surface-alt)}
+.page-btn.active{background:var(--green);border-color:var(--green);color:#fff}
+.page-btn:disabled{opacity:.4;cursor:not-allowed}
 
-/* ── Detail modal ── */
-.detail-img { width: 100%; max-height: 300px; object-fit: contain; border-radius: var(--r-sm); border: 1px solid var(--border); margin-bottom: 16px; }
-.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
-.detail-item { background: var(--surface-alt); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 9px 12px; }
+.detail-img{width:100%;max-height:300px;object-fit:contain;border-radius:var(--r-sm);border:1px solid var(--border);margin-bottom:16px}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.detail-item{background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--r-sm);padding:9px 12px}
 
-/* ── View toggle ── */
-.view-toggle { display: flex; border: 1px solid var(--border); border-radius: var(--r-sm); overflow: hidden; }
-.view-btn { padding: 5px 12px; font-size: .78rem; font-weight: 500; background: none; border: none; color: var(--text-2); cursor: pointer; transition: all .15s; }
-.view-btn.active { background: var(--green); color: #fff; }
+.view-toggle{display:flex;border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden}
+.view-btn{padding:5px 12px;font-size:.78rem;font-weight:500;background:none;border:none;color:var(--text-2);cursor:pointer;transition:all .15s}
+.view-btn.active{background:var(--green);color:#fff}
 
-@media (max-width: 900px) {
-  .dd-stats { grid-template-columns: 1fr 1fr; }
-  .dd-grid  { grid-template-columns: 1fr; }
-}
-@media (max-width: 500px) {
-  .dd-stats { grid-template-columns: 1fr; }
-  .treatment-grid { grid-template-columns: 1fr; }
-}
+@media(max-width:900px){.dd-stats{grid-template-columns:1fr 1fr}.dd-grid{grid-template-columns:1fr}}
+@media(max-width:500px){.dd-stats{grid-template-columns:1fr}.treatment-grid{grid-template-columns:1fr}}
 </style>
 {% endblock %}
 
 {% block topnav_right %}
-<a href="/" class="btn btn-outline btn-sm">← My Crops</a>
+<a href="/" class="btn btn-outline btn-sm"><i class="fa-solid fa-arrow-left"></i> My Crops</a>
 {% endblock %}
 
 {% block content %}
@@ -156,7 +96,9 @@ tbody td { padding: 9px 13px; color: var(--text); }
 
   <!-- Page heading -->
   <div style="margin-bottom:22px">
-    <div style="font-size:1.25rem;font-weight:700;color:var(--text);letter-spacing:-.3px">🔬 Disease Detection</div>
+    <div style="font-size:1.25rem;font-weight:700;color:var(--text);letter-spacing:-.3px">
+      <i class="fa-solid fa-microscope" style="color:var(--blue);margin-right:8px"></i>Disease Detection
+    </div>
     <div style="font-size:.82rem;color:var(--text-3);margin-top:3px">
       Upload any plant leaf image to identify diseases using the ResNet-18 CNN model (38 classes)
     </div>
@@ -165,32 +107,20 @@ tbody td { padding: 9px 13px; color: var(--text); }
   <!-- Stats strip -->
   <div class="dd-stats">
     <div class="dd-stat">
-      <div class="dd-stat-icon" style="background:var(--purple-light)">🔬</div>
-      <div>
-        <div class="dd-stat-label">Total Scans</div>
-        <div class="dd-stat-value">{{ total_scans }}</div>
-      </div>
+      <div class="dd-stat-icon" style="background:var(--purple-light);color:var(--purple)"><i class="fa-solid fa-microscope"></i></div>
+      <div><div class="dd-stat-label">Total Scans</div><div class="dd-stat-value">{{ total_scans }}</div></div>
     </div>
     <div class="dd-stat">
-      <div class="dd-stat-icon" style="background:var(--red-light)">⚠️</div>
-      <div>
-        <div class="dd-stat-label">Diseases Found</div>
-        <div class="dd-stat-value" style="color:var(--red)">{{ disease_found }}</div>
-      </div>
+      <div class="dd-stat-icon" style="background:var(--red-light);color:var(--red)"><i class="fa-solid fa-triangle-exclamation"></i></div>
+      <div><div class="dd-stat-label">Diseases Found</div><div class="dd-stat-value" style="color:var(--red)">{{ disease_found }}</div></div>
     </div>
     <div class="dd-stat">
-      <div class="dd-stat-icon" style="background:var(--green-light)">✅</div>
-      <div>
-        <div class="dd-stat-label">Healthy Plants</div>
-        <div class="dd-stat-value" style="color:var(--green)">{{ healthy_found }}</div>
-      </div>
+      <div class="dd-stat-icon" style="background:var(--green-light);color:var(--green)"><i class="fa-solid fa-circle-check"></i></div>
+      <div><div class="dd-stat-label">Healthy Plants</div><div class="dd-stat-value" style="color:var(--green)">{{ healthy_found }}</div></div>
     </div>
     <div class="dd-stat">
-      <div class="dd-stat-icon" style="background:var(--blue-light)">🧠</div>
-      <div>
-        <div class="dd-stat-label">Model Accuracy</div>
-        <div class="dd-stat-value">99.7%</div>
-      </div>
+      <div class="dd-stat-icon" style="background:var(--blue-light);color:var(--blue)"><i class="fa-solid fa-brain"></i></div>
+      <div><div class="dd-stat-label">Model Accuracy</div><div class="dd-stat-value">99.7%</div></div>
     </div>
   </div>
 
@@ -201,22 +131,20 @@ tbody td { padding: 9px 13px; color: var(--text); }
     <div>
       <div class="card">
         <div class="card-header">
-          <span class="card-title">📤 Upload Plant Image</span>
-          <span style="font-size:.72rem;color:var(--text-3)">ResNet-18 · 38 classes</span>
+          <span class="card-title"><i class="fa-solid fa-upload"></i> Upload Plant Image</span>
+          <span style="font-size:.72rem;color:var(--text-3)">ResNet-18 - 38 classes</span>
         </div>
         <div class="card-body">
           <div class="drop-area" id="drop-zone" onclick="document.getElementById('scan-file').click()">
-            <div class="drop-icon">🌿</div>
-            <div class="drop-text">Click or drag &amp; drop an image here</div>
-            <div class="drop-hint">JPG, PNG, WEBP — leaf close-up gives best results</div>
+            <div class="drop-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+            <div class="drop-text">Click or drag and drop an image here</div>
+            <div class="drop-hint">JPG, PNG, WEBP - leaf close-up gives best results</div>
           </div>
           <input type="file" id="scan-file" accept="image/*" onchange="previewScan(this)"/>
           <div class="preview-wrap" id="preview-wrap">
             <img id="preview-img" src="" alt="preview"/>
           </div>
-
           <div class="divider"></div>
-
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Farmer Name <span style="color:var(--text-3)">(optional)</span></label>
@@ -231,9 +159,8 @@ tbody td { padding: 9px 13px; color: var(--text); }
             <label class="form-label">Notes <span style="color:var(--text-3)">(optional)</span></label>
             <textarea class="form-textarea" id="scan-notes" rows="2" placeholder="Any visible symptoms, leaf colour, etc."></textarea>
           </div>
-
           <button class="btn btn-secondary btn-lg" style="width:100%;justify-content:center" onclick="runScan()" id="scan-btn">
-            🔬 Analyse Image
+            <i class="fa-solid fa-magnifying-glass"></i> Analyse Image
           </button>
         </div>
       </div>
@@ -241,38 +168,33 @@ tbody td { padding: 9px 13px; color: var(--text); }
 
     <!-- Right: result -->
     <div>
-      <!-- Placeholder -->
       <div class="result-placeholder" id="result-placeholder">
-        <div class="result-placeholder-icon">🔬</div>
+        <div class="result-placeholder-icon"><i class="fa-solid fa-microscope"></i></div>
         <div class="result-placeholder-title">No analysis yet</div>
         <div class="result-placeholder-sub">Upload a plant image on the left to detect diseases</div>
       </div>
 
-      <!-- Result (hidden until scan) -->
       <div class="result-card" id="result-card">
         <div class="result-header" id="result-header">
-          <span class="result-emoji" id="result-emoji">🌿</span>
+          <span class="result-icon" id="result-icon"><i class="fa-solid fa-leaf"></i></span>
           <div>
-            <div class="result-name" id="result-name">—</div>
-            <div class="result-sub"  id="result-sub">—</div>
+            <div class="result-name" id="result-name">--</div>
+            <div class="result-sub"  id="result-sub">--</div>
           </div>
         </div>
         <div class="result-body">
-          <!-- Confidence bars -->
           <div class="conf-row">
-            <div class="conf-label"><span>Model Confidence</span><span id="conf-val">—</span></div>
+            <div class="conf-label"><span>Model Confidence</span><span id="conf-val">--</span></div>
             <div class="conf-track"><div class="conf-fill" id="conf-bar" style="width:0%;background:var(--green-mid)"></div></div>
           </div>
           <div class="conf-row">
-            <div class="conf-label"><span>Model Accuracy (trained)</span><span id="acc-val">—</span></div>
+            <div class="conf-label"><span>Model Accuracy (trained)</span><span id="acc-val">--</span></div>
             <div class="conf-track"><div class="conf-fill" id="acc-bar" style="width:0%;background:var(--blue)"></div></div>
           </div>
           <div class="conf-row">
-            <div class="conf-label"><span>Leaf Greenness Index</span><span id="green-val">—</span></div>
+            <div class="conf-label"><span>Leaf Greenness Index</span><span id="green-val">--</span></div>
             <div class="conf-track"><div class="conf-fill" id="green-bar" style="width:0%;background:var(--teal)"></div></div>
           </div>
-
-          <!-- Treatment -->
           <div class="treatment-section" id="treatment-section">
             <div class="treatment-section-title">Treatment Plan</div>
             <div class="treatment-grid" id="treatment-grid"></div>
@@ -291,10 +213,10 @@ tbody td { padding: 9px 13px; color: var(--text); }
     </div>
     <div style="display:flex;align-items:center;gap:10px">
       <div class="view-toggle">
-        <button class="view-btn active" id="view-grid-btn" onclick="setView('grid')">⊞ Grid</button>
-        <button class="view-btn" id="view-list-btn" onclick="setView('list')">☰ List</button>
+        <button class="view-btn active" id="view-grid-btn" onclick="setView('grid')"><i class="fa-solid fa-grip"></i> Grid</button>
+        <button class="view-btn" id="view-list-btn" onclick="setView('list')"><i class="fa-solid fa-list"></i> List</button>
       </div>
-      <button class="btn btn-outline btn-sm" onclick="loadHistory(1)">↻ Refresh</button>
+      <button class="btn btn-outline btn-sm" onclick="loadHistory(1)"><i class="fa-solid fa-arrows-rotate"></i> Refresh</button>
     </div>
   </div>
 
@@ -319,7 +241,7 @@ tbody td { padding: 9px 13px; color: var(--text); }
       </div>
       {% empty %}
       <div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--text-3);background:var(--surface);border:2px dashed var(--border);border-radius:var(--r)">
-        <div style="font-size:2rem;margin-bottom:8px">📷</div>
+        <div style="font-size:2rem;margin-bottom:8px;color:var(--text-3)"><i class="fa-solid fa-camera"></i></div>
         <div style="font-weight:600;color:var(--text-2)">No scans yet</div>
         <div style="font-size:.78rem;margin-top:4px">Upload a plant image above to begin</div>
       </div>
@@ -328,7 +250,7 @@ tbody td { padding: 9px 13px; color: var(--text); }
     <div class="pagination" id="pagination"></div>
   </div>
 
-  <!-- List view (hidden by default) -->
+  <!-- List view -->
   <div id="history-list-view" style="display:none">
     <div class="card">
       <div class="card-body" style="padding:0">
@@ -337,13 +259,8 @@ tbody td { padding: 9px 13px; color: var(--text); }
             <thead>
               <tr>
                 <th style="width:56px">Image</th>
-                <th>Result</th>
-                <th>Confidence</th>
-                <th>Greenness</th>
-                <th>Farmer</th>
-                <th>Location</th>
-                <th>Scanned</th>
-                <th></th>
+                <th>Result</th><th>Confidence</th><th>Greenness</th>
+                <th>Farmer</th><th>Location</th><th>Scanned</th><th></th>
               </tr>
             </thead>
             <tbody id="history-tbody">
@@ -357,10 +274,10 @@ tbody td { padding: 9px 13px; color: var(--text); }
                     <span class="badge badge-green">{{ img.disease_name|default:"Healthy"|truncatechars:28 }}</span>
                   {% endif %}
                 </td>
-                <td>{% if img.confidence %}{{ img.confidence|floatformat:1 }}%{% else %}<span class="td-muted">—</span>{% endif %}</td>
-                <td>{% if img.greenness_score %}{{ img.greenness_score|floatformat:1 }}{% else %}<span class="td-muted">—</span>{% endif %}</td>
-                <td class="td-muted">{{ img.farmer_name|default:"—" }}</td>
-                <td class="td-muted">{{ img.location|default:"—" }}</td>
+                <td>{% if img.confidence %}{{ img.confidence|floatformat:1 }}%{% else %}<span class="td-muted">--</span>{% endif %}</td>
+                <td>{% if img.greenness_score %}{{ img.greenness_score|floatformat:1 }}{% else %}<span class="td-muted">--</span>{% endif %}</td>
+                <td class="td-muted">{{ img.farmer_name|default:"--" }}</td>
+                <td class="td-muted">{{ img.location|default:"--" }}</td>
                 <td class="td-muted">{{ img.uploaded_at|date:"d M Y, H:i" }}</td>
                 <td><button class="btn btn-outline btn-sm" onclick="openDetail({{ img.id }},'{{ img.image.url }}','{{ img.disease_name }}',{{ img.confidence|default:'null' }},{{ img.model_accuracy|default:'null' }},{{ img.greenness_score|default:'null' }},{{ img.disease_detected|yesno:'true,false' }},'{{ img.farmer_name }}','{{ img.location }}','{{ img.uploaded_at|date:"d M Y, H:i" }}')">View</button></td>
               </tr>
@@ -376,12 +293,12 @@ tbody td { padding: 9px 13px; color: var(--text); }
 
 </div><!-- /dd-page -->
 
-<!-- ── Detail modal ── -->
+<!-- Detail modal -->
 <div class="modal-overlay" id="detail-modal">
   <div class="modal" style="max-width:560px">
     <div class="modal-header">
       <h3 id="detail-modal-title">Scan Detail</h3>
-      <button class="modal-close" onclick="closeModal('detail-modal')">×</button>
+      <button class="modal-close" onclick="closeModal('detail-modal')">&times;</button>
     </div>
     <div class="modal-body">
       <img class="detail-img" id="detail-img" src="" alt="plant"/>
@@ -398,12 +315,8 @@ tbody td { padding: 9px 13px; color: var(--text); }
 let currentPage = 1;
 let currentView = 'grid';
 
-/* ── Drop zone ── */
-document.addEventListener('DOMContentLoaded', () => {
-  setupDrop('drop-zone', 'scan-file', previewScan);
-});
+document.addEventListener('DOMContentLoaded', () => { setupDrop('drop-zone', 'scan-file', previewScan); });
 
-/* ── Preview ── */
 function previewScan(inp) {
   if (!inp.files.length) return;
   const wrap = document.getElementById('preview-wrap');
@@ -411,106 +324,79 @@ function previewScan(inp) {
   wrap.style.display = 'block';
 }
 
-/* ── Run scan ── */
 function runScan() {
   const file = document.getElementById('scan-file').files[0];
   if (!file) { toast('Please select an image first.', 'err'); return; }
-
   const btn = document.getElementById('scan-btn');
-  btn.innerHTML = '<span class="spinner"></span> Analysing…';
+  btn.innerHTML = '<span class="spinner"></span> Analysing...';
   btn.disabled = true;
-
   const fd = new FormData();
-  fd.append('image',    file);
+  fd.append('image',       file);
   fd.append('farmer_name', document.getElementById('scan-farmer').value);
   fd.append('location',    document.getElementById('scan-location').value);
   fd.append('notes',       document.getElementById('scan-notes').value);
-
   fetch('/api/disease/analyse', { method: 'POST', body: fd })
     .then(r => r.json())
     .then(d => {
-      btn.innerHTML = '🔬 Analyse Image';
+      btn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Analyse Image';
       btn.disabled = false;
       if (d.error) { toast(d.error, 'err'); return; }
       showResult(d);
-      loadHistory(1); // refresh history
+      loadHistory(1);
     })
     .catch(() => {
-      btn.innerHTML = '🔬 Analyse Image';
+      btn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Analyse Image';
       btn.disabled = false;
       toast('Scan failed. Check connection.', 'err');
     });
 }
 
-/* ── Show result ── */
 function showResult(d) {
   const isHealthy = !d.disease_detected;
   document.getElementById('result-placeholder').style.display = 'none';
-
   const card = document.getElementById('result-card');
   card.classList.add('show');
-
   const header = document.getElementById('result-header');
   header.className = 'result-header ' + (isHealthy ? 'healthy' : 'disease');
-  document.getElementById('result-emoji').textContent = isHealthy ? '✅' : '⚠️';
-  document.getElementById('result-name').textContent  = d.disease_name || '—';
-  document.getElementById('result-sub').textContent   =
+  document.getElementById('result-icon').innerHTML = isHealthy
+    ? '<i class="fa-solid fa-circle-check" style="color:var(--green)"></i>'
+    : '<i class="fa-solid fa-triangle-exclamation" style="color:var(--red)"></i>';
+  document.getElementById('result-name').textContent = d.disease_name || '--';
+  document.getElementById('result-sub').textContent  =
     (isHealthy ? 'No disease detected' : 'Disease identified') +
-    (d.greenness_score != null ? `  ·  Greenness: ${d.greenness_score}%` : '');
+    (d.greenness_score != null ? '  -  Greenness: ' + d.greenness_score + '%' : '');
 
-  const conf  = d.confidence    || 0;
-  const acc   = d.model_accuracy || 0;
+  const conf  = d.confidence      || 0;
+  const acc   = d.model_accuracy  || 0;
   const green = d.greenness_score || 0;
 
   document.getElementById('conf-val').textContent  = conf + '%';
-  document.getElementById('acc-val').textContent   = acc  ? acc + '%' : 'Fallback mode';
+  document.getElementById('acc-val').textContent   = acc ? acc + '%' : 'Fallback mode';
   document.getElementById('green-val').textContent = green + '%';
-
-  document.getElementById('conf-bar').style.width  = conf  + '%';
+  document.getElementById('conf-bar').style.width  = conf + '%';
   document.getElementById('conf-bar').style.background = isHealthy ? 'var(--green-mid)' : 'var(--red)';
   document.getElementById('acc-bar').style.width   = Math.min(acc, 100) + '%';
   document.getElementById('green-bar').style.width = green + '%';
 
   const t = d.treatment || {};
   document.getElementById('treatment-grid').innerHTML = `
-    <div class="treatment-item">
-      <div class="treatment-label">Pesticide / Control</div>
-      <div class="treatment-value">${t.pesticide || '—'}</div>
-    </div>
-    <div class="treatment-item">
-      <div class="treatment-label">Dose</div>
-      <div class="treatment-value">${t.dose || '—'}</div>
-    </div>
-    <div class="treatment-item">
-      <div class="treatment-label">Per Acre</div>
-      <div class="treatment-value">${t.per_acre || '—'}</div>
-    </div>
-    <div class="treatment-item">
-      <div class="treatment-label">Spray Interval</div>
-      <div class="treatment-value">${t.spray_interval || '—'}</div>
-    </div>`;
+    <div class="treatment-item"><div class="treatment-label">Pesticide / Control</div><div class="treatment-value">${t.pesticide || '--'}</div></div>
+    <div class="treatment-item"><div class="treatment-label">Dose</div><div class="treatment-value">${t.dose || '--'}</div></div>
+    <div class="treatment-item"><div class="treatment-label">Per Acre</div><div class="treatment-value">${t.per_acre || '--'}</div></div>
+    <div class="treatment-item"><div class="treatment-label">Spray Interval</div><div class="treatment-value">${t.spray_interval || '--'}</div></div>`;
 
   const noteEl = document.getElementById('treatment-note');
-  if (t.additional) {
-    noteEl.textContent = '📋 ' + t.additional;
-    noteEl.style.display = 'block';
-  } else {
-    noteEl.style.display = 'none';
-  }
+  if (t.additional) { noteEl.textContent = t.additional; noteEl.style.display = 'block'; }
+  else { noteEl.style.display = 'none'; }
 
-  toast(isHealthy ? '✅ Plant looks healthy!' : '⚠️ Disease detected — see treatment plan.', isHealthy ? 'ok' : 'err');
+  toast(isHealthy ? 'Plant looks healthy!' : 'Disease detected - see treatment plan.', isHealthy ? 'ok' : 'err');
 }
 
-/* ── History loader ── */
 function loadHistory(page) {
   currentPage = page;
-  fetch(`/api/disease/history?page=${page}`)
+  fetch('/api/disease/history?page=' + page)
     .then(r => r.json())
-    .then(d => {
-      renderHistoryGrid(d.images);
-      renderHistoryTable(d.images);
-      renderPagination(d.total, page);
-    })
+    .then(d => { renderHistoryGrid(d.images); renderHistoryTable(d.images); renderPagination(d.total, page); })
     .catch(() => {});
 }
 
@@ -518,9 +404,8 @@ function renderHistoryGrid(images) {
   const grid = document.getElementById('history-grid');
   if (!images.length) {
     grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--text-3);background:var(--surface);border:2px dashed var(--border);border-radius:var(--r)">
-      <div style="font-size:2rem;margin-bottom:8px">📷</div>
-      <div style="font-weight:600;color:var(--text-2)">No scans yet</div>
-    </div>`;
+      <div style="font-size:2rem;margin-bottom:8px"><i class="fa-solid fa-camera"></i></div>
+      <div style="font-weight:600;color:var(--text-2)">No scans yet</div></div>`;
     return;
   }
   grid.innerHTML = images.map(img => `
@@ -530,9 +415,7 @@ function renderHistoryGrid(images) {
         <div class="hist-card-name">${esc(img.disease_name || 'Unknown')}</div>
         <div class="hist-card-meta">${img.uploaded_at}</div>
         <div class="hist-card-conf">
-          <span class="badge ${img.disease_detected ? 'badge-red' : 'badge-green'}" style="font-size:.62rem">
-            ${img.disease_detected ? 'Disease' : 'Healthy'}
-          </span>
+          <span class="badge ${img.disease_detected ? 'badge-red' : 'badge-green'}" style="font-size:.62rem">${img.disease_detected ? 'Disease' : 'Healthy'}</span>
           ${img.confidence ? `<span style="font-size:.67rem;color:var(--text-3)">${img.confidence.toFixed(1)}%</span>` : ''}
         </div>
       </div>
@@ -548,30 +431,27 @@ function renderHistoryTable(images) {
   tbody.innerHTML = images.map(img => `
     <tr>
       <td><img src="${img.url}" style="width:44px;height:44px;object-fit:cover;border-radius:5px;border:1px solid var(--border)"/></td>
-      <td><span class="badge ${img.disease_detected ? 'badge-red' : 'badge-green'}">${esc((img.disease_name||'Healthy').substring(0,30))}</span></td>
-      <td>${img.confidence ? img.confidence.toFixed(1)+'%' : '<span class="td-muted">—</span>'}</td>
-      <td>${img.greenness_score != null ? img.greenness_score.toFixed(1) : '<span class="td-muted">—</span>'}</td>
-      <td class="td-muted">${esc(img.farmer_name||'—')}</td>
-      <td class="td-muted">${esc(img.location||'—')}</td>
+      <td><span class="badge ${img.disease_detected ? 'badge-red' : 'badge-green'}">${esc((img.disease_name || 'Healthy').substring(0, 30))}</span></td>
+      <td>${img.confidence ? img.confidence.toFixed(1) + '%' : '<span class="td-muted">--</span>'}</td>
+      <td>${img.greenness_score != null ? img.greenness_score.toFixed(1) : '<span class="td-muted">--</span>'}</td>
+      <td class="td-muted">${esc(img.farmer_name || '--')}</td>
+      <td class="td-muted">${esc(img.location || '--')}</td>
       <td class="td-muted">${img.uploaded_at}</td>
       <td><button class="btn btn-outline btn-sm" onclick="openDetail(${img.id},'${img.url}','${esc(img.disease_name)}',${img.confidence},${img.model_accuracy},${img.greenness_score},${img.disease_detected},'${esc(img.farmer_name)}','${esc(img.location)}','${img.uploaded_at}')">View</button></td>
     </tr>`).join('');
 }
 
 function renderPagination(total, current) {
-  const perPage = 20;
-  const totalPages = Math.ceil(total / perPage);
+  const perPage = 20, totalPages = Math.ceil(total / perPage);
   const pg = document.getElementById('pagination');
   if (totalPages <= 1) { pg.innerHTML = ''; return; }
-  let html = `<button class="page-btn" onclick="loadHistory(${current-1})" ${current===1?'disabled':''}>← Prev</button>`;
-  for (let p = Math.max(1, current-2); p <= Math.min(totalPages, current+2); p++) {
-    html += `<button class="page-btn ${p===current?'active':''}" onclick="loadHistory(${p})">${p}</button>`;
-  }
-  html += `<button class="page-btn" onclick="loadHistory(${current+1})" ${current===totalPages?'disabled':''}>Next →</button>`;
+  let html = `<button class="page-btn" onclick="loadHistory(${current - 1})" ${current === 1 ? 'disabled' : ''}>Prev</button>`;
+  for (let p = Math.max(1, current - 2); p <= Math.min(totalPages, current + 2); p++)
+    html += `<button class="page-btn ${p === current ? 'active' : ''}" onclick="loadHistory(${p})">${p}</button>`;
+  html += `<button class="page-btn" onclick="loadHistory(${current + 1})" ${current === totalPages ? 'disabled' : ''}>Next</button>`;
   pg.innerHTML = html;
 }
 
-/* ── View toggle ── */
 function setView(v) {
   currentView = v;
   document.getElementById('history-grid-view').style.display = v === 'grid' ? 'block' : 'none';
@@ -580,21 +460,20 @@ function setView(v) {
   document.getElementById('view-list-btn').classList.toggle('active', v === 'list');
 }
 
-/* ── Detail modal ── */
 function openDetail(id, url, name, conf, acc, green, diseased, farmer, location, date) {
   document.getElementById('detail-modal-title').textContent = name || 'Scan Detail';
   document.getElementById('detail-img').src = url;
   document.getElementById('detail-grid').innerHTML = `
     <div class="detail-item"><div style="font-size:.67rem;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">Result</div>
-      <span class="badge ${diseased?'badge-red':'badge-green'}">${diseased?'Disease Detected':'Healthy'}</span></div>
+      <span class="badge ${diseased ? 'badge-red' : 'badge-green'}">${diseased ? 'Disease Detected' : 'Healthy'}</span></div>
     <div class="detail-item"><div style="font-size:.67rem;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">Confidence</div>
-      <span style="font-weight:600">${conf!=null?conf.toFixed(1)+'%':'—'}</span></div>
+      <span style="font-weight:600">${conf != null ? conf.toFixed(1) + '%' : '--'}</span></div>
     <div class="detail-item"><div style="font-size:.67rem;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">Model Accuracy</div>
-      <span style="font-weight:600">${acc!=null?acc+'%':'Fallback'}</span></div>
+      <span style="font-weight:600">${acc != null ? acc + '%' : 'Fallback'}</span></div>
     <div class="detail-item"><div style="font-size:.67rem;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">Greenness</div>
-      <span style="font-weight:600">${green!=null?green.toFixed(1)+'%':'—'}</span></div>
-    ${farmer?`<div class="detail-item"><div style="font-size:.67rem;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">Farmer</div><span style="font-weight:600">${esc(farmer)}</span></div>`:''}
-    ${location?`<div class="detail-item"><div style="font-size:.67rem;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">Location</div><span style="font-weight:600">${esc(location)}</span></div>`:''}
+      <span style="font-weight:600">${green != null ? green.toFixed(1) + '%' : '--'}</span></div>
+    ${farmer ? `<div class="detail-item"><div style="font-size:.67rem;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">Farmer</div><span style="font-weight:600">${esc(farmer)}</span></div>` : ''}
+    ${location ? `<div class="detail-item"><div style="font-size:.67rem;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">Location</div><span style="font-weight:600">${esc(location)}</span></div>` : ''}
     <div class="detail-item" style="grid-column:1/-1"><div style="font-size:.67rem;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">Scanned</div>
       <span style="font-weight:600">${date}</span></div>`;
   openModal('detail-modal');
@@ -602,7 +481,7 @@ function openDetail(id, url, name, conf, acc, green, diseased, farmer, location,
 
 function esc(s) {
   if (!s) return '';
-  return String(s).replace(/'/g, "\\'").replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return String(s).replace(/'/g, "\\'").replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 </script>
 {% endblock %}

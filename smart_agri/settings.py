@@ -59,3 +59,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Asia/Kolkata'
 USE_TZ = True
+DEFAULT_CHARSET = 'utf-8'

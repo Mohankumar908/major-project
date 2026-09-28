@@ -1,188 +1,134 @@
 {% extends "agriculture/base.html" %}
 {% load agri_tags %}
-{% block title %}My Crops — Smart Agriculture{% endblock %}
+{% block title %}My Crops - Smart Agriculture{% endblock %}
 {% block nav_home %}active{% endblock %}
 
 {% block extra_head %}
 <style>
-/* ── Page shell ── */
-.page { max-width: 1200px; margin: 0 auto; padding: 28px 24px; }
+.page{max-width:1200px;margin:0 auto;padding:28px 24px}
 
-/* ── Summary strip ── */
-.summary-strip {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px;
-}
-.summary-card {
-  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r);
-  padding: 16px 20px; box-shadow: var(--shadow-sm);
-  display: flex; align-items: center; gap: 14px;
-}
-.summary-icon {
-  width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
-}
-.summary-label { font-size: .72rem; color: var(--text-3); text-transform: uppercase; letter-spacing: .05em; font-weight: 500; }
-.summary-value { font-size: 1.65rem; font-weight: 700; color: var(--text); line-height: 1; margin-top: 2px; }
+.summary-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+.summary-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;box-shadow:var(--shadow-sm);display:flex;align-items:center;gap:14px}
+.summary-icon{width:44px;height:44px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.1rem}
+.summary-label{font-size:.72rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:500}
+.summary-value{font-size:1.65rem;font-weight:700;color:var(--text);line-height:1;margin-top:2px}
 
-/* ── Section header ── */
-.section-header {
-  display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
-}
-.section-title { font-size: 1rem; font-weight: 700; color: var(--text); }
-.section-sub   { font-size: .78rem; color: var(--text-3); margin-top: 2px; }
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.section-title{font-size:1rem;font-weight:700;color:var(--text)}
+.section-sub{font-size:.78rem;color:var(--text-3);margin-top:2px}
 
-/* ── Session grid ── */
-.session-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
-  gap: 18px; margin-bottom: 32px;
-}
+.session-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:18px;margin-bottom:32px}
 
-/* ── Session card ── */
-.session-card {
-  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r);
-  box-shadow: var(--shadow-sm); overflow: hidden;
-  transition: box-shadow .2s, transform .15s;
-  text-decoration: none; color: inherit; display: block;
-}
-.session-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.session-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-sm);overflow:hidden;transition:box-shadow .2s,transform .15s;text-decoration:none;color:inherit;display:block}
+.session-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
 
-.session-card-top {
-  padding: 18px 20px 14px;
-  display: flex; align-items: flex-start; gap: 14px;
-}
-.session-icon {
-  width: 48px; height: 48px; border-radius: 12px; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center; font-size: 1.7rem;
-  line-height: 1;
-}
-.session-icon.active    { background: var(--green-light); }
-.session-icon.completed { background: #f1f5f9; }
-.session-icon.paused    { background: var(--amber-light); }
+.session-card-top{padding:18px 20px 14px;display:flex;align-items:flex-start;gap:14px}
+.session-icon{width:48px;height:48px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.2rem}
+.session-icon.active{background:var(--green-light);color:var(--green)}
+.session-icon.completed{background:#f1f5f9;color:var(--slate)}
+.session-icon.paused{background:var(--amber-light);color:var(--amber)}
 
-.session-meta { flex: 1; min-width: 0; }
-.session-crop {
-  font-size: .95rem; font-weight: 700; color: var(--text);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.session-variety { font-size: .73rem; color: var(--text-3); margin-top: 1px; }
-.session-field   { font-size: .75rem; color: var(--text-2); margin-top: 4px; }
+.session-meta{flex:1;min-width:0}
+.session-crop{font-size:.95rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.session-variety{font-size:.73rem;color:var(--text-3);margin-top:1px}
+.session-field{font-size:.75rem;color:var(--text-2);margin-top:4px}
 
-.session-card-body { padding: 0 20px 16px; }
-.session-stats     { display: flex; gap: 18px; margin-bottom: 12px; flex-wrap: wrap; }
-.session-stat      { display: flex; flex-direction: column; gap: 2px; }
-.session-stat-val  { font-size: .92rem; font-weight: 700; color: var(--text); }
-.session-stat-lbl  { font-size: .67rem; color: var(--text-3); text-transform: uppercase; letter-spacing: .04em; }
+.session-card-body{padding:0 20px 16px}
+.session-stats{display:flex;gap:18px;margin-bottom:12px;flex-wrap:wrap}
+.session-stat{display:flex;flex-direction:column;gap:2px}
+.session-stat-val{font-size:.92rem;font-weight:700;color:var(--text)}
+.session-stat-lbl{font-size:.67rem;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em}
 
-.session-progress-label {
-  display: flex; justify-content: space-between;
-  font-size: .72rem; color: var(--text-3); margin-bottom: 4px;
-}
+.session-progress-label{display:flex;justify-content:space-between;font-size:.72rem;color:var(--text-3);margin-bottom:4px}
 
-.session-card-footer {
-  padding: 10px 20px; background: var(--surface-alt);
-  border-top: 1px solid var(--border-soft);
-  display: flex; align-items: center; justify-content: space-between;
-}
-.session-footer-left { font-size: .73rem; color: var(--text-3); }
+.session-card-footer{padding:10px 20px;background:var(--surface-alt);border-top:1px solid var(--border-soft);display:flex;align-items:center;justify-content:space-between}
+.session-footer-left{font-size:.73rem;color:var(--text-3)}
 
-/* ── Empty state ── */
-.empty-state {
-  text-align: center; padding: 52px 20px;
-  background: var(--surface); border: 2px dashed var(--border);
-  border-radius: var(--r); color: var(--text-3);
-}
-.empty-icon  { font-size: 3rem; margin-bottom: 12px; }
-.empty-title { font-size: .95rem; font-weight: 600; color: var(--text-2); margin-bottom: 6px; }
-.empty-sub   { font-size: .8rem; margin-bottom: 20px; }
+.empty-state{text-align:center;padding:52px 20px;background:var(--surface);border:2px dashed var(--border);border-radius:var(--r);color:var(--text-3)}
+.empty-icon{font-size:2.5rem;margin-bottom:12px;color:var(--green-mid)}
+.empty-title{font-size:.95rem;font-weight:600;color:var(--text-2);margin-bottom:6px}
+.empty-sub{font-size:.8rem;margin-bottom:20px}
 
-/* ── Delete button on cards ── */
-.btn-delete-session {
-  background: none; border: none; cursor: pointer; padding: 4px 6px;
-  border-radius: 6px; color: var(--text-3); font-size: .85rem; line-height: 1;
-  transition: background .15s, color .15s;
-  flex-shrink: 0;
-}
-.btn-delete-session:hover { background: var(--red-light); color: #dc2626; }
+.btn-delete-session{background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:6px;color:var(--text-3);font-size:.8rem;line-height:1;transition:background .15s,color .15s;flex-shrink:0}
+.btn-delete-session:hover{background:var(--red-light);color:#dc2626}
 
-/* ── Confirm delete modal ── */
-.delete-modal-body { text-align: center; padding: 8px 0 4px; }
-.delete-modal-icon { font-size: 2.5rem; margin-bottom: 12px; }
-.delete-modal-msg  { font-size: .9rem; color: var(--text-2); line-height: 1.5; }
+.delete-modal-body{text-align:center;padding:8px 0 4px}
+.delete-modal-icon{font-size:2rem;color:var(--red);margin-bottom:12px}
+.delete-modal-msg{font-size:.9rem;color:var(--text-2);line-height:1.5}
 
-/* ── Modal crop icon preview ── */
-.modal-crop-preview {
-  width: 56px; height: 56px; border-radius: 14px; background: var(--green-light);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 2rem; margin: 0 auto 18px; line-height: 1;
-}
+.modal-crop-preview{width:56px;height:56px;border-radius:14px;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:var(--green);margin:0 auto 18px}
 
-@media (max-width: 900px) { .summary-strip { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 600px) { .summary-strip { grid-template-columns: 1fr; } .session-grid { grid-template-columns: 1fr; } }
+@media(max-width:900px){.summary-strip{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.summary-strip{grid-template-columns:1fr}.session-grid{grid-template-columns:1fr}}
 </style>
 {% endblock %}
 
 {% block topnav_right %}
-<button class="btn btn-primary" onclick="openModal('new-session-modal')">＋ New Crop Session</button>
+<button class="btn btn-primary" onclick="openModal('new-session-modal')">
+  <i class="fa-solid fa-plus"></i> New Crop Session
+</button>
 {% endblock %}
 
 {% block content %}
 <div class="page">
 
-  <!-- ── Summary strip ── -->
+  <!-- Summary strip -->
   <div class="summary-strip">
     <div class="summary-card">
-      <div class="summary-icon" style="background:var(--green-light)">🌱</div>
+      <div class="summary-icon" style="background:var(--green-light);color:var(--green)"><i class="fa-solid fa-seedling"></i></div>
       <div>
         <div class="summary-label">Active Sessions</div>
         <div class="summary-value">{{ total_active }}</div>
       </div>
     </div>
     <div class="summary-card">
-      <div class="summary-icon" style="background:#f0f9ff">✅</div>
+      <div class="summary-icon" style="background:#f0f9ff;color:var(--blue)"><i class="fa-solid fa-circle-check"></i></div>
       <div>
         <div class="summary-label">Completed</div>
         <div class="summary-value">{{ total_completed }}</div>
       </div>
     </div>
     <div class="summary-card">
-      <div class="summary-icon" style="background:var(--red-light)">⚠️</div>
+      <div class="summary-icon" style="background:var(--red-light);color:var(--red)"><i class="fa-solid fa-triangle-exclamation"></i></div>
       <div>
         <div class="summary-label">Disease Alerts</div>
         <div class="summary-value">{{ disease_alerts }}</div>
       </div>
     </div>
     <div class="summary-card">
-      <div class="summary-icon" style="background:var(--purple-light)">🔬</div>
+      <div class="summary-icon" style="background:var(--purple-light);color:var(--purple)"><i class="fa-solid fa-microscope"></i></div>
       <div>
         <div class="summary-label">Scans Run</div>
-        <div class="summary-value" id="total-scans">—</div>
+        <div class="summary-value" id="total-scans">--</div>
       </div>
     </div>
   </div>
 
-  <!-- ── Active Sessions ── -->
+  <!-- Active Sessions -->
   <div class="section-header">
     <div>
       <div class="section-title">Active Crop Sessions</div>
       <div class="section-sub">Click a card to open the full monitoring dashboard</div>
     </div>
-    <button class="btn btn-primary btn-sm" onclick="openModal('new-session-modal')">＋ New Session</button>
+    <button class="btn btn-primary btn-sm" onclick="openModal('new-session-modal')">
+      <i class="fa-solid fa-plus"></i> New Session
+    </button>
   </div>
 
   <div class="session-grid">
     {% for s in active_sessions %}
     <a href="/session/{{ s.id }}/" class="session-card">
       <div class="session-card-top">
-        <div class="session-icon active">{{ s.crop_name|crop_icon }}</div>
+        <div class="session-icon active"><i class="fa-solid fa-leaf"></i></div>
         <div class="session-meta">
           <div class="session-crop">
             {{ s.crop_name }}{% if s.crop_variety %}&nbsp;<span style="font-weight:400;color:var(--text-3)">({{ s.crop_variety }})</span>{% endif %}
           </div>
           {% if s.field_name %}<div class="session-variety">{{ s.field_name }}</div>{% endif %}
           <div class="session-field">
-            {% if s.farmer_name %}👤 {{ s.farmer_name }} &nbsp;·&nbsp; {% endif %}
-            📐 {{ s.field_acres }} acre{% if s.field_acres != 1 %}s{% endif %}
-            {% if s.location %} &nbsp;·&nbsp; 📍 {{ s.location }}{% endif %}
+            {% if s.farmer_name %}<i class="fa-solid fa-user" style="font-size:.7rem"></i> {{ s.farmer_name }} &nbsp;&middot;&nbsp; {% endif %}
+            <i class="fa-solid fa-ruler" style="font-size:.7rem"></i> {{ s.field_acres }} acre{% if s.field_acres != 1 %}s{% endif %}
+            {% if s.location %} &nbsp;&middot;&nbsp; <i class="fa-solid fa-location-dot" style="font-size:.7rem"></i> {{ s.location }}{% endif %}
           </div>
         </div>
         {% with h=s.latest_health %}
@@ -217,34 +163,37 @@
           <span>Progress</span><span>{{ s.progress_pct }}%</span>
         </div>
         <div class="progress-track">
-          <div class="progress-fill" style="width:{{ s.progress_pct }}%;
-            background:{% if s.progress_pct >= 75 %}var(--green-mid){% elif s.progress_pct >= 40 %}var(--blue){% else %}var(--amber){% endif %}">
-          </div>
+          <div class="progress-fill" style="width:{{ s.progress_pct }}%;background:{% if s.progress_pct >= 75 %}var(--green-mid){% elif s.progress_pct >= 40 %}var(--blue){% else %}var(--amber){% endif %}"></div>
         </div>
       </div>
 
       <div class="session-card-footer">
         <span class="session-footer-left">
-          📅 Sown {{ s.sowing_date }}{% if s.expected_harvest %} &nbsp;·&nbsp; 🌾 Harvest {{ s.expected_harvest }}{% endif %}
+          <i class="fa-regular fa-calendar" style="font-size:.7rem"></i>
+          Sown {{ s.sowing_date }}{% if s.expected_harvest %} &nbsp;&middot;&nbsp; <i class="fa-solid fa-wheat-awn" style="font-size:.7rem"></i> Harvest {{ s.expected_harvest }}{% endif %}
         </span>
         <div style="display:flex;align-items:center;gap:8px">
           <span class="badge badge-green">Active</span>
           <button class="btn-delete-session" title="Delete session"
-            onclick="event.preventDefault();event.stopPropagation();confirmDelete({{ s.id }},'{{ s.crop_name|escapejs }}{% if s.field_name %} — {{ s.field_name|escapejs }}{% endif %}')">🗑️</button>
+            onclick="event.preventDefault();event.stopPropagation();confirmDelete({{ s.id }},'{{ s.crop_name|escapejs }}{% if s.field_name %} - {{ s.field_name|escapejs }}{% endif %}')">
+            <i class="fa-solid fa-trash"></i>
+          </button>
         </div>
       </div>
     </a>
     {% empty %}
     <div class="empty-state" style="grid-column:1/-1">
-      <div class="empty-icon">🌱</div>
+      <div class="empty-icon"><i class="fa-solid fa-seedling"></i></div>
       <div class="empty-title">No active crop sessions yet</div>
       <div class="empty-sub">Create your first session to start tracking crop growth</div>
-      <button class="btn btn-primary" onclick="openModal('new-session-modal')">＋ Create First Session</button>
+      <button class="btn btn-primary" onclick="openModal('new-session-modal')">
+        <i class="fa-solid fa-plus"></i> Create First Session
+      </button>
     </div>
     {% endfor %}
   </div>
 
-  <!-- ── Completed Sessions ── -->
+  <!-- Completed Sessions -->
   {% if completed_sessions %}
   <div class="section-header" style="margin-top:8px">
     <div>
@@ -256,22 +205,25 @@
     {% for s in completed_sessions %}
     <a href="/session/{{ s.id }}/" class="session-card" style="opacity:.85">
       <div class="session-card-top">
-        <div class="session-icon completed">{{ s.crop_name|crop_icon }}</div>
+        <div class="session-icon completed"><i class="fa-solid fa-circle-check"></i></div>
         <div class="session-meta">
           <div class="session-crop">{{ s.crop_name }}</div>
           {% if s.field_name %}<div class="session-variety">{{ s.field_name }}</div>{% endif %}
-          <div class="session-field">📐 {{ s.field_acres }} acres &nbsp;·&nbsp; 📅 {{ s.sowing_date }}</div>
+          <div class="session-field">
+            <i class="fa-solid fa-ruler" style="font-size:.7rem"></i> {{ s.field_acres }} acres &nbsp;&middot;&nbsp;
+            <i class="fa-regular fa-calendar" style="font-size:.7rem"></i> {{ s.sowing_date }}
+          </div>
         </div>
         <span class="badge badge-slate">Done</span>
       </div>
       <div class="session-card-footer">
-        <span class="session-footer-left">
-          {{ s.growth_records.count }} records &nbsp;·&nbsp; {{ s.days_since_sowing }} days
-        </span>
+        <span class="session-footer-left">{{ s.growth_records.count }} records &nbsp;&middot;&nbsp; {{ s.days_since_sowing }} days</span>
         <div style="display:flex;align-items:center;gap:8px">
           <span class="badge badge-slate">Done</span>
           <button class="btn-delete-session" title="Delete session"
-            onclick="event.preventDefault();event.stopPropagation();confirmDelete({{ s.id }},'{{ s.crop_name|escapejs }}{% if s.field_name %} — {{ s.field_name|escapejs }}{% endif %}')">🗑️</button>
+            onclick="event.preventDefault();event.stopPropagation();confirmDelete({{ s.id }},'{{ s.crop_name|escapejs }}{% if s.field_name %} - {{ s.field_name|escapejs }}{% endif %}')">
+            <i class="fa-solid fa-trash"></i>
+          </button>
         </div>
       </div>
     </a>
@@ -279,7 +231,7 @@
   </div>
   {% endif %}
 
-  <!-- ── Paused Sessions ── -->
+  <!-- Paused Sessions -->
   {% if paused_sessions %}
   <div class="section-header">
     <div>
@@ -291,10 +243,12 @@
     {% for s in paused_sessions %}
     <a href="/session/{{ s.id }}/" class="session-card" style="opacity:.8">
       <div class="session-card-top">
-        <div class="session-icon paused">{{ s.crop_name|crop_icon }}</div>
+        <div class="session-icon paused"><i class="fa-solid fa-pause"></i></div>
         <div class="session-meta">
           <div class="session-crop">{{ s.crop_name }}</div>
-          <div class="session-field">📐 {{ s.field_acres }} acres &nbsp;·&nbsp; Day {{ s.days_since_sowing }}</div>
+          <div class="session-field">
+            <i class="fa-solid fa-ruler" style="font-size:.7rem"></i> {{ s.field_acres }} acres &nbsp;&middot;&nbsp; Day {{ s.days_since_sowing }}
+          </div>
         </div>
         <span class="badge badge-amber">Paused</span>
       </div>
@@ -303,7 +257,9 @@
         <div style="display:flex;align-items:center;gap:8px">
           <span class="badge badge-amber">Paused</span>
           <button class="btn-delete-session" title="Delete session"
-            onclick="event.preventDefault();event.stopPropagation();confirmDelete({{ s.id }},'{{ s.crop_name|escapejs }}{% if s.field_name %} — {{ s.field_name|escapejs }}{% endif %}')">🗑️</button>
+            onclick="event.preventDefault();event.stopPropagation();confirmDelete({{ s.id }},'{{ s.crop_name|escapejs }}{% if s.field_name %} - {{ s.field_name|escapejs }}{% endif %}')">
+            <i class="fa-solid fa-trash"></i>
+          </button>
         </div>
       </div>
     </a>
@@ -313,15 +269,15 @@
 
 </div><!-- /page -->
 
-<!-- ── Confirm Delete Modal ── -->
+<!-- Confirm Delete Modal -->
 <div class="modal-overlay" id="delete-confirm-modal">
   <div class="modal" style="max-width:420px">
     <div class="modal-header">
       <h3>Delete Session</h3>
-      <button class="modal-close" onclick="closeModal('delete-confirm-modal')">×</button>
+      <button class="modal-close" onclick="closeModal('delete-confirm-modal')">&times;</button>
     </div>
     <div class="modal-body delete-modal-body">
-      <div class="delete-modal-icon">🗑️</div>
+      <div class="delete-modal-icon"><i class="fa-solid fa-trash-can"></i></div>
       <div class="delete-modal-msg">
         Are you sure you want to permanently delete<br>
         <strong id="delete-session-name"></strong>?<br><br>
@@ -332,24 +288,28 @@
       <button class="btn btn-outline" onclick="closeModal('delete-confirm-modal')">Cancel</button>
       <button class="btn" id="confirm-delete-btn"
         style="background:#dc2626;color:#fff;border-color:#dc2626"
-        onclick="executeDelete()">🗑️ Delete Permanently</button>
+        onclick="executeDelete()">
+        <i class="fa-solid fa-trash"></i> Delete Permanently
+      </button>
     </div>
   </div>
 </div>
 
-<!-- ── New Session Modal ── -->
+<!-- New Session Modal -->
 <div class="modal-overlay" id="new-session-modal">
   <div class="modal">
     <div class="modal-header">
-      <h3>🌱 New Crop Session</h3>
-      <button class="modal-close" onclick="closeModal('new-session-modal')">×</button>
+      <h3><i class="fa-solid fa-seedling" style="color:var(--green)"></i> New Crop Session</h3>
+      <button class="modal-close" onclick="closeModal('new-session-modal')">&times;</button>
     </div>
     <div class="modal-body">
-      <div class="modal-crop-preview" id="modal-icon-preview">🌱</div>
+      <div class="modal-crop-preview" id="modal-icon-preview">
+        <i class="fa-solid fa-leaf"></i>
+      </div>
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Crop *</label>
-          <select class="form-select" id="m-crop" onchange="updateModalIcon()">
+          <select class="form-select" id="m-crop">
             <option value="Green Gram">Green Gram</option>
             <option value="Rice">Rice</option>
             <option value="Wheat">Wheat</option>
@@ -399,12 +359,14 @@
       </div>
       <div class="form-group">
         <label class="form-label">Notes (optional)</label>
-        <textarea class="form-textarea" id="m-notes" placeholder="Seed batch, soil type, initial observations…"></textarea>
+        <textarea class="form-textarea" id="m-notes" placeholder="Seed batch, soil type, initial observations..."></textarea>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('new-session-modal')">Cancel</button>
-      <button class="btn btn-primary btn-lg" onclick="createSession()" id="create-btn">🌱 Start Session</button>
+      <button class="btn btn-primary btn-lg" onclick="createSession()" id="create-btn">
+        <i class="fa-solid fa-seedling"></i> Start Session
+      </button>
     </div>
   </div>
 </div>
@@ -412,25 +374,12 @@
 
 {% block extra_scripts %}
 <script>
-const ICONS = {
-  'Green Gram':'🫘','Rice':'🌾','Wheat':'🌿','Tomato':'🍅',
-  'Maize':'🌽','Potato':'🥔','Soybean':'🫘','Sugarcane':'🎋',
-  'Cotton':'☁️','Other':'🌱'
-};
-
-function updateModalIcon() {
-  const v = document.getElementById('m-crop').value;
-  document.getElementById('modal-icon-preview').textContent = ICONS[v] || '🌱';
-}
-
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('m-sowing').value = new Date().toISOString().split('T')[0];
-
-  // Fetch total scans count
   fetch('/api/disease/history?page=1')
     .then(r => r.json())
     .then(d => { document.getElementById('total-scans').textContent = d.total || 0; })
-    .catch(() => { document.getElementById('total-scans').textContent = '—'; });
+    .catch(() => { document.getElementById('total-scans').textContent = '--'; });
 });
 
 let _deleteTargetId = null;
@@ -444,15 +393,14 @@ function confirmDelete(sessionId, sessionName) {
 function executeDelete() {
   if (!_deleteTargetId) return;
   const btn = document.getElementById('confirm-delete-btn');
-  btn.innerHTML = '<span class="spinner"></span> Deleting…';
+  btn.innerHTML = '<span class="spinner"></span> Deleting...';
   btn.disabled = true;
-
   fetch('/api/sessions/' + _deleteTargetId + '/delete', { method: 'POST' })
     .then(r => r.json())
     .then(d => {
       if (d.error) {
         toast(d.error, 'err');
-        btn.innerHTML = '🗑️ Delete Permanently';
+        btn.innerHTML = '<i class="fa-solid fa-trash"></i> Delete Permanently';
         btn.disabled = false;
         return;
       }
@@ -462,7 +410,7 @@ function executeDelete() {
     })
     .catch(() => {
       toast('Delete failed. Try again.', 'err');
-      btn.innerHTML = '🗑️ Delete Permanently';
+      btn.innerHTML = '<i class="fa-solid fa-trash"></i> Delete Permanently';
       btn.disabled = false;
     });
 }
@@ -484,7 +432,7 @@ function createSession() {
   }
 
   const btn = document.getElementById('create-btn');
-  btn.innerHTML = '<span class="spinner"></span> Creating…';
+  btn.innerHTML = '<span class="spinner"></span> Creating...';
   btn.disabled = true;
 
   fetch('/api/sessions/create', {
@@ -501,14 +449,14 @@ function createSession() {
   })
   .then(r => r.json())
   .then(d => {
-    btn.innerHTML = '🌱 Start Session';
+    btn.innerHTML = '<i class="fa-solid fa-seedling"></i> Start Session';
     btn.disabled = false;
     if (d.error) { toast(d.error, 'err'); return; }
-    toast('Session created! Opening…', 'ok');
+    toast('Session created! Opening...', 'ok');
     setTimeout(() => window.location = '/session/' + d.session.id + '/', 700);
   })
   .catch(() => {
-    btn.innerHTML = '🌱 Start Session';
+    btn.innerHTML = '<i class="fa-solid fa-seedling"></i> Start Session';
     btn.disabled = false;
     toast('Failed to create session. Try again.', 'err');
   });
