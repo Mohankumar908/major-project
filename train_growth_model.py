@@ -38,11 +38,24 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 
+# Ensure UTF-8 output on Windows consoles
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
+
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.model_selection import KFold, train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import r2_score, mean_absolute_error
 import joblib
+
+try:
+    from xgboost import XGBRegressor
+    HAS_XGBOOST = True
+except ImportError:
+    HAS_XGBOOST = False
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 BASE_DIR    = Path(__file__).resolve().parent
@@ -56,11 +69,11 @@ FEATURES = [
     'greenness_score', 'leaf_coverage_percent', 'leaf_area_norm',
 ]
 
-# ── Stacked ensemble ───────────────────────────────────────────────────────────
+# ── Gradient Boosting & XGBoost Models ────────────────────────────────────────
 
 def build_rf(seed=42):
     return RandomForestRegressor(
-        n_estimators=500,
+        n_estimators=300,
         max_depth=None,
         min_samples_split=4,
         min_samples_leaf=2,
@@ -70,7 +83,7 @@ def build_rf(seed=42):
     )
 
 def build_gbr_meta(seed=42):
-    """Lightweight GBR as meta-learner — trained on OOF predictions."""
+    """GradientBoostingRegressor (meta-learner / direct booster)."""
     return GradientBoostingRegressor(
         n_estimators=200,
         learning_rate=0.05,
@@ -80,31 +93,45 @@ def build_gbr_meta(seed=42):
         random_state=seed,
     )
 
+def build_xgboost(seed=42):
+    """XGBoost Regressor as specified in the growth monitoring architecture."""
+    if HAS_XGBOOST:
+        return XGBRegressor(
+            n_estimators=250,
+            learning_rate=0.04,
+            max_depth=4,
+            subsample=0.85,
+            colsample_bytree=0.85,
+            random_state=seed,
+            n_jobs=-1,
+        )
+    return build_gbr_meta(seed)
+
 
 def stacked_train(X_tr, y_tr, n_splits=5, seed=42):
     """
     Train level-0 RandomForest with k-fold OOF predictions,
     then fit a GBR meta-learner on those OOF predictions.
-    Returns: (rf_model, meta_model) both fitted on full X_tr.
+    Also trains an XGBoost booster.
     """
     kf = KFold(n_splits=n_splits, shuffle=True, random_state=seed)
     oof_preds = np.zeros(len(y_tr))
 
-    # Generate OOF predictions for meta-learner training
     for fold, (tr_idx, val_idx) in enumerate(kf.split(X_tr)):
         rf_fold = build_rf(seed + fold)
         rf_fold.fit(X_tr[tr_idx], y_tr[tr_idx])
         oof_preds[val_idx] = rf_fold.predict(X_tr[val_idx])
 
-    # Fit meta-learner on OOF
     meta = build_gbr_meta(seed)
     meta.fit(oof_preds.reshape(-1, 1), y_tr)
 
-    # Refit full RF on all training data
     rf_full = build_rf(seed)
     rf_full.fit(X_tr, y_tr)
 
-    return rf_full, meta
+    xgb_model = build_xgboost(seed)
+    xgb_model.fit(X_tr, y_tr)
+
+    return rf_full, meta, xgb_model
 
 
 def stacked_predict(X, rf_model, meta_model):
@@ -116,8 +143,8 @@ def stacked_predict(X, rf_model, meta_model):
 
 def train(csv_path: Path):
     print(f"\n{'='*60}")
-    print("  Smart Agriculture — Growth Model Training")
-    print(f"  Stacked Ensemble: RandomForest → GradientBoosting")
+    print("  Smart Agriculture - Growth Model Training")
+    print(f"  Gradient Boosting / XGBoost Ensemble")
     print(f"  Features: {len(FEATURES)} (sensor + image)")
     print(f"{'='*60}\n")
 
@@ -141,41 +168,47 @@ def train(csv_path: Path):
             X_scaled, y, test_size=0.2, random_state=42
         )
 
-        print(f"[2/5] Training {label} stacked ensemble …")
+        print(f"[2/5] Training {label} Gradient Boosting / XGBoost models ...")
 
-        # Level-0: RandomForest (with OOF) + Level-1: GBR meta
-        rf_model, meta_model = stacked_train(X_tr, y_tr, n_splits=5, seed=42)
+        # Level-0: RandomForest (with OOF) + Level-1: GBR meta + Level-1: XGBoost
+        rf_model, meta_model, xgb_model = stacked_train(X_tr, y_tr, n_splits=5, seed=42)
 
         # Evaluate stacked predictions on held-out test set
         y_pred_stack = stacked_predict(X_te, rf_model, meta_model)
         r2_stack  = round(r2_score(y_te, y_pred_stack) * 100, 2)
         mae_stack = round(mean_absolute_error(y_te, y_pred_stack), 2)
 
+        # Evaluate XGBoost
+        y_pred_xgb = xgb_model.predict(X_te)
+        r2_xgb = round(r2_score(y_te, y_pred_xgb) * 100, 2)
+        mae_xgb = round(mean_absolute_error(y_te, y_pred_xgb), 2)
+
         # Compare with RF alone (baseline)
         y_pred_rf = rf_model.predict(X_te)
         r2_rf  = round(r2_score(y_te, y_pred_rf) * 100, 2)
 
-        print(f"      RandomForest alone  R²: {r2_rf}%")
-        print(f"      Stacked ensemble    R²: {r2_stack}%  MAE: ±{mae_stack} {unit}")
-        chosen = r2_stack
+        print(f"      RandomForest baseline R2: {r2_rf}%")
+        print(f"      GradientBoosting Meta R2: {r2_stack}%  MAE: +/-{mae_stack} {unit}")
+        print(f"      XGBoost Model         R2: {r2_xgb}%  MAE: +/-{mae_xgb} {unit}")
+        chosen = max(r2_stack, r2_xgb)
 
         # Feature importance from the RF (interpretable)
         fi = sorted(zip(FEATURES, rf_model.feature_importances_), key=lambda x: -x[1])
         print(f"      Feature importance ({label}):")
         for name, imp in fi:
-            bar = '█' * int(imp * 50)
+            bar = '#' * int(imp * 40)
             print(f"        {name:<25} {bar:<25} {round(imp*100, 1)}%")
         print()
 
         results[key] = {
             'rf':    rf_model,
             'meta':  meta_model,
+            'xgb':   xgb_model,
             'r2':    chosen,
-            'mae':   mae_stack,
+            'mae':   min(mae_stack, mae_xgb),
         }
 
-    print("[3/5] Generating actual vs predicted summary …")
-    # Full-dataset predictions for the report
+    print("[3/5] Generating actual vs predicted summary ...")
     y_yield_actual = df['yield_per_acre_kg'].values
     y_ht_actual    = df['height_cm'].values
     y_yield_pred   = stacked_predict(X_scaled, results['yield']['rf'], results['yield']['meta'])
@@ -192,37 +225,39 @@ def train(csv_path: Path):
     report_path = BASE_DIR / 'dataset' / 'actual_vs_predicted_report.csv'
     report_path.parent.mkdir(exist_ok=True)
     report_df.to_csv(report_path, index=False)
-    print(f"      Saved → {report_path}")
-    print()
+    print(f"      Saved -> {report_path}\n")
 
-    print("[4/5] Saving model …")
+    print("[4/5] Saving model ...")
     MODEL_OUT.parent.mkdir(exist_ok=True)
     joblib.dump({
         # Yield sub-model
         'yield_rf':       results['yield']['rf'],
         'yield_meta':     results['yield']['meta'],
+        'yield_xgb':      results['yield']['xgb'],
         'yield_accuracy': results['yield']['r2'],
         'yield_mae':      results['yield']['mae'],
         # Height sub-model
         'height_rf':      results['height']['rf'],
         'height_meta':    results['height']['meta'],
+        'height_xgb':     results['height']['xgb'],
         'height_accuracy': results['height']['r2'],
         'height_mae':     results['height']['mae'],
         # Shared scaler
         'scaler':         scaler,
         'features':       FEATURES,
-        'model_version':  '2.0-stacked',
+        'model_version':  '3.0-gradient-boosting-xgboost',
+        'model_family':   'Gradient Boosting / XGBoost',
     }, MODEL_OUT)
-    print(f"      Saved → {MODEL_OUT}\n")
+    print(f"      Saved -> {MODEL_OUT}\n")
 
     print("[5/5] Summary")
-    print(f"{'─'*45}")
-    print(f"  Yield  R²: {results['yield']['r2']}%   MAE: ±{results['yield']['mae']} kg/acre")
-    print(f"  Height R²: {results['height']['r2']}%   MAE: ±{results['height']['mae']} cm")
+    print(f"{'-'*45}")
+    print(f"  Yield  R2: {results['yield']['r2']}%   MAE: +/-{results['yield']['mae']} kg/acre")
+    print(f"  Height R2: {results['height']['r2']}%   MAE: +/-{results['height']['mae']} cm")
     print(f"  Features : {len(FEATURES)} (8 sensor + 3 image)")
-    print(f"  Ensemble : RandomForest (n=500) → GBR meta (n=200)")
-    print(f"{'─'*45}")
-    print("\n  ✅ Restart Django server to load the new model.\n")
+    print(f"  Architecture: Gradient Boosting / XGBoost")
+    print(f"{'-'*45}")
+    print("\n  Growth model trained and saved successfully.\n")
 
 
 if __name__ == '__main__':

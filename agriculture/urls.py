@@ -14,17 +14,21 @@ urlpatterns = [
     path('api/sessions/<int:session_id>/delete',  views.api_delete_session,  name='api_delete_session'),
 
     # ── Growth monitoring APIs (scoped to a session) ────────────────────────
-    path('api/sessions/<int:session_id>/sensor-data',    views.api_sensor_data,    name='api_sensor_data'),
-    path('api/sessions/<int:session_id>/live-data',      views.api_live_data,      name='api_live_data'),
-    path('api/sessions/<int:session_id>/growth-chart',   views.api_growth_chart,   name='api_growth_chart'),
-    path('api/sessions/<int:session_id>/predict-growth', views.api_predict_growth, name='api_predict_growth'),
-    path('api/sessions/<int:session_id>/upload-image',   views.api_upload_growth_image, name='api_upload_growth_image'),
-    path('api/sessions/<int:session_id>/notes',          views.api_notes,          name='api_notes'),
-    path('api/sessions/<int:session_id>/notes/add',      views.api_add_note,       name='api_add_note'),
+    path('api/sessions/<int:session_id>/sensor-data',     views.api_sensor_data,     name='api_sensor_data'),
+    path('api/sessions/<int:session_id>/simulate-sensor', views.api_simulate_sensor, name='api_simulate_sensor'),
+    path('api/sessions/<int:session_id>/export-csv',      views.api_export_session_csv, name='api_export_session_csv'),
+    path('api/sessions/<int:session_id>/live-data',       views.api_live_data,       name='api_live_data'),
+    path('api/sessions/<int:session_id>/growth-chart',    views.api_growth_chart,    name='api_growth_chart'),
+    path('api/sessions/<int:session_id>/predict-growth',  views.api_predict_growth,  name='api_predict_growth'),
+    path('api/sessions/<int:session_id>/pipeline',        views.api_multimodal_pipeline, name='api_multimodal_pipeline'),
+    path('api/sessions/<int:session_id>/upload-image',    views.api_upload_growth_image, name='api_upload_growth_image'),
+    path('api/sessions/<int:session_id>/notes',           views.api_notes,           name='api_notes'),
+    path('api/sessions/<int:session_id>/notes/add',       views.api_add_note,        name='api_add_note'),
 
     # ── Disease detection APIs (standalone, no session scope) ──────────────
-    path('api/disease/analyse',  views.api_disease_analyse,  name='api_disease_analyse'),
-    path('api/disease/history',  views.api_disease_history,  name='api_disease_history'),
+    path('api/disease/analyse', views.api_disease_analyse, name='api_disease_analyse'),
+    path('api/disease/sample',  views.api_disease_sample,  name='api_disease_sample'),
+    path('api/disease/history', views.api_disease_history, name='api_disease_history'),
 
     # ── Legacy ESP32 endpoint (keeps existing firmware working) ────────────
     path('api/sensor-data', views.api_sensor_data_legacy, name='api_sensor_data_legacy'),

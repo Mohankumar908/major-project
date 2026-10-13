@@ -1,12 +1,87 @@
 # ML Model Documentation
-## Smart Agriculture System — Green Gram Crop Monitoring
+## Smart Agriculture System — Multimodal Continuous Crop Monitoring
+
+---
+
+## 0. SYSTEM ARCHITECTURE OVERVIEW
+
+The growth monitoring system operates as a **closed-loop continuous monitoring pipeline** within the context of the **SAME CROP SESSION (continuous daily loop)**:
+
+```
+                      ┌────────────────────────────────────────────────────────┐
+                      │                 SAME CROP SESSION                      │
+                      │       (This session continues every day)               │
+                      └───────────────┬────────────────────────┬───────────────┘
+                                      │                        │
+                    ┌─────────────────▼─────────┐    ┌─────────▼─────────────────┐
+                    │       DAILY IMAGE         │    │       SENSOR DATA         │
+                    │   (Morning / Evening)     │    │  (Continuous readings)    │
+                    │  - Morning Capture (Sun)  │    │  - Temperature, Humidity  │
+                    │  - Evening Capture (Moon) │    │  - Soil Moisture, pH, NPK │
+                    └─────────────────┬─────────┘    └─────────┬─────────────────┘
+                                      │                        │
+                    ┌─────────────────▼─────────┐    ┌─────────▼─────────────────┐
+                    │    IMAGE GROWTH MODEL     │    │     SENSOR PROCESSING     │
+                    │  - Plant area (cm²)       │    │  - Temperature / Thermal  │
+                    │  - Green coverage (%)     │    │  - Humidity / VPD (kPa)   │
+                    │  - Canopy size (cm²)      │    │  - Soil moisture index    │
+                    │  - Plant height (est)     │    │  - Soil pH bio-availability│
+                    │  - Growth features (ExG)  │    │  - N / P / K Balance      │
+                    └─────────────────┬─────────┘    └─────────┬─────────────────┘
+                                      │                        │
+                                      └───────────┬────────────┘
+                                                  │
+                                    ┌─────────────▼───────────────┐   ┌─────────────────┐
+                                    │   MULTIMODAL GROWTH STATE   │◄──┤ Historical crop │
+                                    │  Combined image + sensor    │   │ data (velocity, │
+                                    │  features for current state │   │ GDD context)    │
+                                    └─────────────┬───────────────┘   └─────────────────┘
+                                                  │
+                                    ┌─────────────▼───────────────┐
+                                    │    GROWTH PREDICTION MODEL  │
+                                    │  Gradient Boosting / XGBoost│
+                                    └─────────────┬───────────────┘
+                                                  │
+            ┌─────────────────────────────────────┼─────────────────────────────────────┐
+            │                                     │                                     │
+┌───────────▼───────────┐             ┌───────────▼───────────┐             ┌───────────▼───────────┐
+│     GROWTH TREND      │             │    RISK / ANOMALY     │             │      PREDICTION       │
+│ - Growth progression  │             │ - Abnormal growth     │             │ - Future plant height │
+│ - Plant height trend  │             │ - Nutrient deficiency │             │ - Expected yield      │
+│ - Canopy expansion    │             │ - Disease risk index  │             │ - Growth stage pred.  │
+└───────────┬───────────┘             └───────────┬───────────┘             └───────────┬───────────┘
+            │                                     │                                     │
+            └─────────────────────────────────────┼─────────────────────────────────────┘
+                                                  │
+                                    ┌─────────────▼───────────────┐
+                                    │    RECOMMENDATION ENGINE    │
+                                    ├─────────────────────────────┤
+                                    │ 💧 IRRIGATION SUGGESTION    │
+                                    │ 🌱 NUTRIENT SUGGESTION      │
+                                    │ ⚠️ CROP-HEALTH WARNING      │
+                                    └─────────────┬───────────────┘
+                                                  │
+                                    ┌─────────────▼───────────────┐
+                                    │      DASHBOARD GRAPHS       │
+                                    │ 1. Plant Height Trend       │
+                                    │ 2. Canopy Growth            │
+                                    │ 3. Sensor Graphs            │
+                                    │ 4. Predicted Yield          │
+                                    └─────────────┬───────────────┘
+                                                  │
+                                                  ▼
+                                    ┌─────────────────────────────┐
+                                    │      SAME CROP SESSION      │
+                                    │    Continues Every Day      │
+                                    └─────────────────────────────┘
+```
 
 ---
 
 ## 1. GROWTH PREDICTION MODEL (Regression)
 
 ### What model did we choose?
-**Gradient Boosting Regressor** (scikit-learn `GradientBoostingRegressor`)
+**Gradient Boosting / XGBoost Stacked Ensemble** (scikit-learn `GradientBoostingRegressor`, `RandomForestRegressor`, and optional `XGBRegressor`)
 
 ### Why Gradient Boosting over other options?
 

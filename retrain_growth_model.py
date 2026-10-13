@@ -70,8 +70,17 @@ from agriculture.models import DailyGrowthRecord, CropSession
 
 BASE_DIR    = Path(__file__).resolve().parent
 MODEL_OUT   = BASE_DIR / 'ml_models' / 'growth_model.pkl'
-FEATURES    = ['ph', 'npk_nitrogen', 'npk_phosphorus', 'npk_potassium',
-               'temperature', 'humidity', 'soil_moisture', 'day_number']
+FEATURES    = [
+    'ph', 'npk_nitrogen', 'npk_phosphorus', 'npk_potassium',
+    'temperature', 'humidity', 'soil_moisture', 'day_number',
+    'greenness_score', 'leaf_coverage_percent', 'leaf_area_norm',
+]
+
+try:
+    from xgboost import XGBRegressor
+    HAS_XGBOOST = True
+except ImportError:
+    HAS_XGBOOST = False
 
 
 def load_real_height_rows():
@@ -87,11 +96,15 @@ def load_real_height_rows():
         if None in (s.ph, s.npk_nitrogen, s.npk_phosphorus, s.npk_potassium,
                     s.temperature, s.humidity, s.soil_moisture):
             continue
+        gs = r.actual_greenness_score if r.actual_greenness_score is not None else 50.0
+        cov = r.actual_leaf_coverage_percent if r.actual_leaf_coverage_percent is not None else 35.0
+        norm = round(cov / 100.0, 4) if cov is not None else 0.35
         rows.append({
             'ph': s.ph, 'npk_nitrogen': s.npk_nitrogen,
             'npk_phosphorus': s.npk_phosphorus, 'npk_potassium': s.npk_potassium,
             'temperature': s.temperature, 'humidity': s.humidity,
             'soil_moisture': s.soil_moisture, 'day_number': r.day_number,
+            'greenness_score': gs, 'leaf_coverage_percent': cov, 'leaf_area_norm': norm,
             'height_cm': r.actual_height_cm,
         })
     return pd.DataFrame(rows)
@@ -112,17 +125,23 @@ def load_real_yield_rows():
         )
         if any(v is None for v in avg.values()):
             continue
+        # Average image observations for this crop session if available
+        avg_gs = session.growth_records.exclude(actual_greenness_score__isnull=True).aggregate(Avg('actual_greenness_score'))['actual_greenness_score__avg'] or 55.0
+        avg_cov = session.growth_records.exclude(actual_leaf_coverage_percent__isnull=True).aggregate(Avg('actual_leaf_coverage_percent'))['actual_leaf_coverage_percent__avg'] or 50.0
         rows.append({
             'ph': avg['ph'], 'npk_nitrogen': avg['n'],
             'npk_phosphorus': avg['p'], 'npk_potassium': avg['k'],
             'temperature': avg['t'], 'humidity': avg['h'],
             'soil_moisture': avg['m'], 'day_number': session.days_since_sowing,
+            'greenness_score': avg_gs, 'leaf_coverage_percent': avg_cov,
+            'leaf_area_norm': round(avg_cov / 100.0, 4),
             'yield_per_acre_kg': session.actual_yield_per_acre_kg,
         })
     return pd.DataFrame(rows)
 
 
 def retrain(synthetic_csv, real_weight=8.0, min_real_height_rows=5, min_real_yield_rows=1):
+    from train_growth_model import stacked_train, stacked_predict
     synthetic_path = Path(synthetic_csv)
     if not synthetic_path.exists():
         print(f"Synthetic baseline CSV not found: {synthetic_path}")
@@ -151,13 +170,13 @@ def retrain(synthetic_csv, real_weight=8.0, min_real_height_rows=5, min_real_yie
         print(f"Only {len(real_height)} real height rows (need {min_real_height_rows}+) "
               f"— training on synthetic data only for height.")
 
-    X = scaler.transform(h_df[FEATURES].values)
-    y = h_df['height_cm'].values
-    X_tr, X_te, y_tr, y_te, w_tr, w_te = train_test_split(X, y, h_weights, test_size=0.2, random_state=42)
-    height_model = GradientBoostingRegressor(n_estimators=200, learning_rate=0.05, max_depth=4, random_state=42)
-    height_model.fit(X_tr, y_tr, sample_weight=w_tr)
-    height_acc = round(r2_score(y_te, height_model.predict(X_te)) * 100, 1)
-    height_mae = round(mean_absolute_error(y_te, height_model.predict(X_te)), 2)
+    X_h = scaler.transform(h_df[FEATURES].values)
+    y_h = h_df['height_cm'].values
+    X_tr_h, X_te_h, y_tr_h, y_te_h = train_test_split(X_h, y_h, test_size=0.2, random_state=42)
+    h_rf, h_meta, h_xgb = stacked_train(X_tr_h, y_tr_h, n_splits=5, seed=42)
+    h_pred = stacked_predict(X_te_h, h_rf, h_meta)
+    height_acc = round(r2_score(y_te_h, h_pred) * 100, 1)
+    height_mae = round(mean_absolute_error(y_te_h, h_pred), 2)
     print(f"Height model: R²={height_acc}%  MAE=±{height_mae}cm")
 
     # ── YIELD MODEL ──────────────────────────────────────────────────────
@@ -169,23 +188,33 @@ def retrain(synthetic_csv, real_weight=8.0, min_real_height_rows=5, min_real_yie
         y_weights = np.concatenate([y_weights, np.full(len(real_yield), real_weight * 2)])
         print(f"Blending {len(real_yield)} real harvest yield observation(s) (weighted {real_weight*2}x each).")
     else:
-        print("No real harvest yield recorded yet (set CropSession.actual_yield_per_acre_kg at "
-              "harvest) — training on synthetic data only for yield.")
+        print("No real harvest yield recorded yet — training on synthetic baseline.")
 
-    X = scaler.transform(y_df[FEATURES].values)
-    y = y_df['yield_per_acre_kg'].values
-    X_tr, X_te, y_tr, y_te, w_tr, w_te = train_test_split(X, y, y_weights, test_size=0.2, random_state=42)
-    yield_model = GradientBoostingRegressor(n_estimators=400, learning_rate=0.03, max_depth=5,
-                                             min_samples_split=5, random_state=42)
-    yield_model.fit(X_tr, y_tr, sample_weight=w_tr)
-    yield_acc = round(r2_score(y_te, yield_model.predict(X_te)) * 100, 1)
-    yield_mae = round(mean_absolute_error(y_te, yield_model.predict(X_te)), 2)
+    X_y = scaler.transform(y_df[FEATURES].values)
+    y_y = y_df['yield_per_acre_kg'].values
+    X_tr_y, X_te_y, y_tr_y, y_te_y = train_test_split(X_y, y_y, test_size=0.2, random_state=42)
+    y_rf, y_meta, y_xgb = stacked_train(X_tr_y, y_tr_y, n_splits=5, seed=42)
+    y_pred = stacked_predict(X_te_y, y_rf, y_meta)
+    yield_acc = round(r2_score(y_te_y, y_pred) * 100, 1)
+    yield_mae = round(mean_absolute_error(y_te_y, y_pred), 2)
     print(f"Yield model: R²={yield_acc}%  MAE=±{yield_mae}kg/acre")
 
     MODEL_OUT.parent.mkdir(exist_ok=True)
     joblib.dump({
-        'yield_model': yield_model, 'height_model': height_model,
-        'scaler': scaler, 'yield_accuracy': yield_acc, 'height_accuracy': height_acc,
+        'yield_rf':       y_rf,
+        'yield_meta':     y_meta,
+        'yield_xgb':      y_xgb,
+        'yield_accuracy': yield_acc,
+        'yield_mae':      yield_mae,
+        'height_rf':      h_rf,
+        'height_meta':    h_meta,
+        'height_xgb':     h_xgb,
+        'height_accuracy': height_acc,
+        'height_mae':     height_mae,
+        'scaler':         scaler,
+        'features':       FEATURES,
+        'model_version':  '3.0-gradient-boosting-xgboost-retrained',
+        'model_family':   'Gradient Boosting / XGBoost',
     }, MODEL_OUT)
 
     print(f"\nSaved retrained model -> {MODEL_OUT}")

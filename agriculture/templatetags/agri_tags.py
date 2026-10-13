@@ -30,3 +30,19 @@ def health_badge_class(score):
     if score >= 50:
         return 'badge-amber'
     return 'badge-red'
+
+
+@register.filter
+def format_disease(raw_name):
+    """Format dataset disease class name for clean presentation."""
+    if not raw_name:
+        return 'Unprocessed'
+    if '___' in raw_name:
+        plant, disease = raw_name.split('___', 1)
+        p_clean = plant.replace('_', ' ').replace('(', '').replace(')', '').replace(',', '').strip()
+        d_clean = disease.replace('_', ' ').replace('(', '').replace(')', '').strip()
+        if d_clean.lower() == 'healthy':
+            return f"{p_clean} - Healthy"
+        return f"{p_clean} - {d_clean}"
+    return raw_name.replace('_', ' ')
+

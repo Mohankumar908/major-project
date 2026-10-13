@@ -143,15 +143,18 @@ class DailyGrowthRecord(models.Model):
     slot                     = models.CharField(max_length=10, choices=SLOT_CHOICES, default='morning')
     day_number               = models.IntegerField(default=1)
 
-    # Observed
+    # Observed / Image Growth Model Features
     actual_height_cm         = models.FloatField(null=True, blank=True)
     actual_greenness_score   = models.FloatField(null=True, blank=True)
     actual_leaf_coverage_percent = models.FloatField(null=True, blank=True)
     actual_leaf_area_cm2         = models.FloatField(null=True, blank=True)
+    canopy_size_cm2          = models.FloatField(null=True, blank=True)
+    estimated_plant_height_cm = models.FloatField(null=True, blank=True)
+    growth_features          = models.JSONField(default=dict, blank=True)
     image                    = models.ForeignKey(PlantImage, null=True, blank=True, on_delete=models.SET_NULL)
     image_uploaded           = models.BooleanField(default=False)
 
-    # Predicted
+    # Predicted / Multimodal Outputs
     predicted_height_cm      = models.FloatField(null=True, blank=True)
     predicted_yield_per_acre = models.FloatField(null=True, blank=True)
     health_score             = models.FloatField(null=True, blank=True)
@@ -159,6 +162,19 @@ class DailyGrowthRecord(models.Model):
     recommendation           = models.TextField(blank=True)
     model_accuracy           = models.FloatField(null=True, blank=True)
     sensor_data              = models.ForeignKey(SensorData, null=True, blank=True, on_delete=models.SET_NULL)
+
+    # Multimodal Growth State Vector
+    multimodal_state         = models.JSONField(default=dict, blank=True)
+
+    # Model Triad Outputs
+    growth_trend_data        = models.JSONField(default=dict, blank=True)
+    risk_anomaly_data        = models.JSONField(default=dict, blank=True)
+    prediction_data          = models.JSONField(default=dict, blank=True)
+
+    # Recommendation Engine Triad
+    irrigation_suggestion    = models.JSONField(default=dict, blank=True)
+    nutrient_suggestion      = models.JSONField(default=dict, blank=True)
+    crop_health_warning      = models.JSONField(default=dict, blank=True)
 
     class Meta:
         ordering = ['date', 'slot']
